@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}You're offline — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container empty-state" style="padding-top:100px;">
+  <h1 style="font-size:1.6rem;">You're offline</h1>
+  <p class="muted">It looks like there's no internet connection right now. Once you're back online, this page will refresh automatically.</p>
+  <button class="btn btn-primary" onclick="location.reload()">Try again</button>
+</section>
+{% endblock %}

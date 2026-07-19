@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Book {{ service.name }} — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:40px;max-width:600px;margin-inline:auto;">
+  <h1 style="font-size:1.6rem;">Book: {{ service.name }}</h1>
+  <p class="muted">Pick your preferred date, time, and location. We'll confirm your booking by email within 24 hours.</p>
+
+  <form method="post" class="form-card">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="date">Preferred date</label>
+        <input type="date" id="date" name="date" required value="{{ form_data.get('date', '') }}">
+      </div>
+      <div class="form-group">
+        <label for="time">Preferred time</label>
+        <input type="time" id="time" name="time" required value="{{ form_data.get('time', '') }}">
+        <p class="helper-text">Booking hours: 9:00 AM – 6:00 PM</p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="event_type">Event / job type</label>
+      <input type="text" id="event_type" name="event_type" placeholder="e.g. Wedding, Product shoot, Corporate launch" value="{{ form_data.get('event_type', '') }}">
+    </div>
+
+    <div class="form-group">
+      <label for="location">Location</label>
+      <input type="text" id="location" name="location" placeholder="Studio visit or your on-site address" value="{{ form_data.get('location', '') }}">
+    </div>
+
+    <div class="form-group">
+      <label for="notes">Notes for our team</label>
+      <textarea id="notes" name="notes" placeholder="Tell us more about what you need — guest count, style, deadlines, etc.">{{ form_data.get('notes', '') }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Confirm booking request</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:40px;">
+  <h1 style="font-size:1.6rem;">Welcome, {{ current_user.full_name.split(' ')[0] }}</h1>
+  <p class="muted">Here's a quick look at your recent activity.</p>
+
+  <div class="grid grid-2" style="margin-top:28px;">
+    <div class="card" style="padding:22px;">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3 style="margin:0;">Recent bookings</h3>
+        <a href="{{ url_for('dashboard.my_bookings') }}" class="btn btn-ghost btn-sm">View all</a>
+      </div>
+      {% for b in bookings %}
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;">
+          <span>{{ b.service.name }}</span>
+          <span class="status-pill status-{{ b.status }}">{{ b.status }}</span>
+        </div>
+        <p class="muted ref-code" style="font-size:0.8rem;margin:4px 0 0;">{{ b.reference }} · {{ b.preferred_date }} at {{ b.preferred_time.strftime('%H:%M') }}</p>
+      </div>
+      {% else %}
+      <p class="muted">No bookings yet.</p>
+      {% endfor %}
+    </div>
+
+    <div class="card" style="padding:22px;">
+      <div class="section-head" style="margin-bottom:16px;">
+        <h3 style="margin:0;">Recent orders</h3>
+        <a href="{{ url_for('dashboard.my_orders') }}" class="btn btn-ghost btn-sm">View all</a>
+      </div>
+      {% for o in orders %}
+      <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" style="display:block;padding:10px 0;border-bottom:1px solid var(--border);color:var(--text);">
+        <div style="display:flex;justify-content:space-between;">
+          <span class="ref-code">{{ o.reference }}</span>
+          <span class="status-pill status-{{ o.status }}">{{ o.status }}</span>
+        </div>
+        <p class="muted" style="font-size:0.8rem;margin:4px 0 0;">{{ currency }}{{ "%.2f"|format(o.total_amount) }} · {{ o.created_at.strftime('%d %b %Y') }}</p>
+      </a>
+      {% else %}
+      <p class="muted">No orders yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

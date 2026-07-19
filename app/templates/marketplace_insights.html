@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Marketplace insights — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:48px;max-width:800px;">
+  <span class="eyebrow">How we shop-proof this store</span>
+  <h1>Built with global marketplace habits in mind.</h1>
+  <p class="muted" style="font-size:1.05rem;">Shoppers arrive from apps like Jumia, Alibaba, and Temu, and they expect certain things: clear pricing, visible trust signals, easy comparison, and fast checkout. We borrowed the patterns that work — and left out the noise — to keep this a single, branded storefront rather than an open marketplace.</p>
+
+  <div class="grid grid-2" style="margin-top:36px;">
+    <div class="card" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Trust signals, kept simple</h3>
+      <p class="muted" style="font-size:0.9rem;">Star ratings and reviews live on every service page, so buyers can judge quality before booking — the same at-a-glance trust cue used across large marketplaces.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Transparent, unit-based pricing</h3>
+      <p class="muted" style="font-size:0.9rem;">Every price shows its unit ("per item", "per session", "per event") up front — no surprise fees at checkout, a common complaint with cross-border marketplace orders.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Category-first browsing</h3>
+      <p class="muted" style="font-size:0.9rem;">A filterable sidebar and search bar mirror how shoppers narrow down catalogs of thousands of SKUs, scaled down to our own service range.</p>
+    </div>
+    <div class="card" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">One-tap reorder</h3>
+      <p class="muted" style="font-size:0.9rem;">Signed-in customers can revisit past orders and bookings from their dashboard, making repeat print runs or annual event bookings quick to place again.</p>
+    </div>
+  </div>
+
+  <div class="card reg-marks" style="padding:28px;margin-top:36px;background:var(--purple-100);border:none;">
+    <h3 style="font-size:1.05rem;">A note on scope</h3>
+    <p class="muted" style="margin:0;">This storefront represents {{ company_name }} only — it isn't a multi-vendor marketplace. If you'd like your products listed on third-party platforms like Jumia, Alibaba, or Temu as an additional sales channel, that's a separate seller registration on each platform; we can help prepare product listings and photography for those channels on request.</p>
+  </div>
+</section>
+{% endblock %}

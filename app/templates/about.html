@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}About — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:48px;max-width:760px;">
+  <span class="eyebrow">Our story</span>
+  <h1>Print and pixels, planned and delivered.</h1>
+  <p class="muted" style="font-size:1.05rem;">{{ company_name }} started as a neighbourhood print shop and grew into a full creative partner — covering digital printing, branding, graphic design, photo enlargement and editing, photography, video coverage, and complete event planning. Wherever you are, our team plans, produces, and ships.</p>
+
+  <div class="grid grid-3" style="margin-top:40px;">
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.05rem;">Print &amp; brand</h3>
+      <p class="muted" style="font-size:0.9rem;">Business cards, banners, packaging, logo and brand identity design, delivered to spec every time.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.05rem;">Capture &amp; edit</h3>
+      <p class="muted" style="font-size:0.9rem;">Photo shoots, video coverage, enlargement, and retouching — from studio sessions to full-day events.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.05rem;">Plan &amp; produce</h3>
+      <p class="muted" style="font-size:0.9rem;">Event consultation and planning that ties your printed materials, visuals, and on-the-day logistics together.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow">Worldwide digital press &amp; events</span>
+      <h1>Every print. Every brand. Every event — sorted.</h1>
+      <p class="lead">From business cards to full-scale event coverage: printing, branding, graphic design, photo &amp; video, and end-to-end event planning, booked and delivered in one place.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('catalog.list_services') }}" class="btn btn-primary">Browse services</a>
+        <a href="{{ url_for('catalog.list_services') }}?category=events" class="btn btn-ghost">Book a consultation</a>
+      </div>
+    </div>
+
+    <div class="hero-visual reg-marks">
+      <div class="job-ticket">
+        <div>Job ticket <strong>#PC-4821</strong></div>
+        <div>Status: <strong>In production</strong></div>
+      </div>
+      <div class="color-bars">
+        <span style="background:#5B21B6"></span>
+        <span style="background:#8B5CF6"></span>
+        <span style="background:#C4B5FD"></span>
+        <span style="background:#1B1523"></span>
+      </div>
+      <p class="muted" style="margin:0 0 4px;font-size:0.9rem;">Full-colour, large-format, and specialty finishes — every job proofed and registered for perfect alignment.</p>
+      <a href="{{ url_for('catalog.list_services') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">See print specs</a>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="section-head">
+    <div>
+      <h2>What we do</h2>
+      <p>Everything a growing brand or a big-day event needs, under one roof.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-4">
+    {% for cat in categories %}
+    <a href="{{ url_for('catalog.list_services', category=cat.slug) }}" class="card category-card reg-marks">
+      <div class="icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg>
+      </div>
+      <h3>{{ cat.name }}</h3>
+      <p>{{ cat.description }}</p>
+    </a>
+    {% else %}
+    <p class="muted">Categories will appear here once services are added.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{% if featured %}
+<section class="container">
+  <div class="section-head">
+    <div>
+      <h2>Featured services</h2>
+      <p>Popular with our customers this month.</p>
+    </div>
+    <a href="{{ url_for('catalog.list_services') }}" class="btn btn-ghost btn-sm">View all</a>
+  </div>
+
+  <div class="grid grid-4">
+    {% for s in featured %}
+    <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
+      <div class="thumb">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+      </div>
+      <div class="body">
+        <span class="tag">{{ s.category.name }}</span>
+        <h3>{{ s.name }}</h3>
+        <p class="muted" style="font-size:0.88rem;">{{ s.short_description }}</p>
+        <div class="meta-row">
+          <span class="price">{{ currency }}{{ "%.2f"|format(s.price) }} <small class="muted">/ {{ s.unit }}</small></span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="container">
+  <div class="card reg-marks" style="padding:40px;text-align:center;background:var(--purple-100);border:none;">
+    <h2 style="margin-bottom:10px;">Ready to start your next job?</h2>
+    <p class="muted" style="max-width:52ch;margin:0 auto 22px;">Create an account to track orders, manage bookings, and reorder your favourite print jobs in one click.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Create free account</a>
+  </div>
+</section>
+
+{% endblock %}

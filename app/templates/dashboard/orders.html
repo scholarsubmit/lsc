@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}My orders — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:40px;">
+  <h1 style="font-size:1.6rem;">My orders</h1>
+
+  {% if orders %}
+  <table>
+    <thead><tr><th>Reference</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td class="ref-code">{{ o.reference }}</td>
+        <td class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</td>
+        <td><span class="status-pill status-{{ o.status }}">{{ o.status }}</span></td>
+        <td>{{ o.created_at.strftime('%d %b %Y') }}</td>
+        <td><a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="btn btn-ghost btn-sm">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <p>You haven't placed any orders yet.</p>
+    <a href="{{ url_for('catalog.list_services') }}" class="btn btn-primary" style="margin-top:12px;">Browse services</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

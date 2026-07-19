@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:40px;">
+  <h1 style="font-size:1.6rem;">Checkout</h1>
+
+  <div class="hero-grid" style="align-items:flex-start;">
+    <form method="post" class="form-card" style="margin:0;">
+      <h4>Delivery / pickup details</h4>
+      <div class="form-group">
+        <label for="shipping_address">Delivery address</label>
+        <textarea id="shipping_address" name="shipping_address" placeholder="Where should we deliver, or leave blank for studio pickup" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="payment_method">Payment method</label>
+        <select id="payment_method" name="payment_method">
+          <option value="pay_on_pickup">Pay on pickup / delivery</option>
+          <option value="card">Card payment</option>
+          <option value="bank_transfer">Bank transfer</option>
+        </select>
+        <p class="helper-text">Card payments are processed securely at the next step.</p>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Place order</button>
+    </form>
+
+    <div class="card reg-marks" style="padding:24px;">
+      <h4>Order summary</h4>
+      {% for item in items %}
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.92rem;">
+        <span>{{ item.service.name }} × {{ item.quantity }}</span>
+        <span class="price">{{ currency }}{{ "%.2f"|format(item.subtotal) }}</span>
+      </div>
+      {% endfor %}
+      <div style="display:flex;justify-content:space-between;padding-top:14px;font-weight:700;">
+        <span>Total</span>
+        <span class="price">{{ currency }}{{ "%.2f"|format(total) }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

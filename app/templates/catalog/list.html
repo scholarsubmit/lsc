@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Services — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:40px;">
+  <div class="section-head">
+    <div>
+      <h1 style="font-size:1.8rem;">Services</h1>
+      <p class="muted">Printing, branding, photo &amp; video, and event planning — priced clearly, booked instantly.</p>
+    </div>
+  </div>
+
+  <form class="search-bar" method="get">
+    {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+    <input type="text" name="q" value="{{ search }}" placeholder="Search services, e.g. 'flyers' or 'wedding photography'">
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+
+  <div class="catalog-layout">
+    <aside class="filter-panel">
+      <h4>Categories</h4>
+      <a href="{{ url_for('catalog.list_services') }}" class="{{ 'active' if not active_category }}">All services</a>
+      {% for cat in categories %}
+      <a href="{{ url_for('catalog.list_services', category=cat.slug) }}" class="{{ 'active' if active_category == cat.slug }}">{{ cat.name }}</a>
+      {% endfor %}
+    </aside>
+
+    <div>
+      {% if services %}
+      <div class="grid grid-3">
+        {% for s in services %}
+        <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
+          <div class="thumb">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          </div>
+          <div class="body">
+            <span class="tag">{{ s.category.name }}</span>
+            <h3>{{ s.name }}</h3>
+            <p class="muted" style="font-size:0.88rem;">{{ s.short_description }}</p>
+            <div class="meta-row">
+              <span class="price">{{ currency }}{{ "%.2f"|format(s.price) }} <small class="muted">/ {{ s.unit }}</small></span>
+              {% if s.is_bookable %}<span class="tag">Bookable</span>{% endif %}
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>No services match your search yet.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

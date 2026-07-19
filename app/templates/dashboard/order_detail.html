@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Order {{ order.reference }} — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container" style="padding-top:40px;max-width:700px;">
+  <h1 style="font-size:1.6rem;">Order <span class="ref-code">{{ order.reference }}</span></h1>
+  <p><span class="status-pill status-{{ order.status }}">{{ order.status }}</span> · placed {{ order.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+
+  <table style="margin-top:20px;">
+    <thead><tr><th>Item</th><th>Unit price</th><th>Qty</th><th>Subtotal</th></tr></thead>
+    <tbody>
+      {% for item in order.items %}
+      <tr>
+        <td>{{ item.service_name }}</td>
+        <td class="price">{{ currency }}{{ "%.2f"|format(item.unit_price) }}</td>
+        <td>{{ item.quantity }}</td>
+        <td class="price">{{ currency }}{{ "%.2f"|format(item.subtotal) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="text-align:right;margin-top:16px;font-size:1.1rem;">
+    Total: <span class="price">{{ currency }}{{ "%.2f"|format(order.total_amount) }}</span>
+  </div>
+
+  <div class="card" style="padding:20px;margin-top:24px;">
+    <h4>Delivery details</h4>
+    <p class="muted">{{ order.shipping_address or "Studio pickup" }}</p>
+    <p class="muted">Payment method: {{ order.payment_method.replace('_', ' ')|title }}</p>
+  </div>
+</section>
+{% endblock %}
