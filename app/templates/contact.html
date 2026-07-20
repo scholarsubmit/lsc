@@ -10,6 +10,13 @@
       <div style="margin-top:24px;">
         <p><strong>Email:</strong> {{ company_email }}</p>
         <p><strong>Phone:</strong> {{ company_phone }}</p>
+        {% if company_whatsapp %}
+        <p><strong>WhatsApp:</strong> <a href="https://wa.me/{{ company_whatsapp }}" target="_blank" rel="noopener">Chat with us</a></p>
+        {% endif %}
+        <p><strong>Address:</strong> {{ company_address }}</p>
+        {% if company_ceo %}
+        <p><strong>Founder &amp; CEO:</strong> {{ company_ceo }}</p>
+        {% endif %}
         <p><strong>Studio hours:</strong> Mon–Sat, 9:00 AM – 6:00 PM</p>
       </div>
     </div>

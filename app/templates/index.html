@@ -2,27 +2,34 @@
 {% block content %}
 
 <section class="hero">
-  <div class="container hero-grid">
+  <div class="container hero-grid hero-anim">
     <div>
-      <span class="eyebrow">Worldwide digital press &amp; events</span>
-      <h1>Every print. Every brand. Every event — sorted.</h1>
-      <p class="lead">From business cards to full-scale event coverage: printing, branding, graphic design, photo &amp; video, and end-to-end event planning, booked and delivered in one place.</p>
+      <span class="eyebrow">Digital printing &amp; souvenirs · Aba, Nigeria</span>
+      <h1>
+        <span class="line">Every print. Every brand.</span>
+        <span class="line">Every event — sorted.</span>
+      </h1>
+      <p class="lead">{{ company_name }} plans, prints, and delivers: business cards, brochures and banners, branded souvenirs, and full photo/video/event coverage — booked and tracked in one place.</p>
       <div class="hero-actions">
         <a href="{{ url_for('catalog.list_services') }}" class="btn btn-primary">Browse services</a>
         <a href="{{ url_for('catalog.list_services') }}?category=events" class="btn btn-ghost">Book a consultation</a>
       </div>
+      <span class="stamp">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+        Since {{ company_founded }} · Aba, Abia State
+      </span>
     </div>
 
     <div class="hero-visual reg-marks">
+      <div class="hero-poster-wrap">
+        <img src="{{ url_for('static', filename='img/brand/hero-poster.jpg') }}" alt="{{ company_name }} brand mark" loading="eager">
+      </div>
       <div class="job-ticket">
         <div>Job ticket <strong>#PC-4821</strong></div>
         <div>Status: <strong>In production</strong></div>
       </div>
-      <div class="color-bars">
-        <span style="background:#5B21B6"></span>
-        <span style="background:#8B5CF6"></span>
-        <span style="background:#C4B5FD"></span>
-        <span style="background:#1B1523"></span>
+      <div class="plate-stack" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
       </div>
       <p class="muted" style="margin:0 0 4px;font-size:0.9rem;">Full-colour, large-format, and specialty finishes — every job proofed and registered for perfect alignment.</p>
       <a href="{{ url_for('catalog.list_services') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">See print specs</a>
@@ -30,7 +37,15 @@
   </div>
 </section>
 
-<section class="container">
+<div class="container">
+  <div class="trust-strip reveal">
+    <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg> Registered as {{ company_name }} Ltd</span>
+    <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Trading since {{ company_founded }}</span>
+    <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg> Serving Aba, Abia &amp; nationwide delivery</span>
+  </div>
+</div>
+
+<section class="container reveal">
   <div class="section-head">
     <div>
       <h2>What we do</h2>
@@ -38,7 +53,7 @@
     </div>
   </div>
 
-  <div class="grid grid-4">
+  <div class="grid grid-4 reveal-stagger">
     {% for cat in categories %}
     <a href="{{ url_for('catalog.list_services', category=cat.slug) }}" class="card category-card reg-marks">
       <div class="icon-wrap">
@@ -54,7 +69,7 @@
 </section>
 
 {% if featured %}
-<section class="container">
+<section class="container reveal">
   <div class="section-head">
     <div>
       <h2>Featured services</h2>
@@ -63,7 +78,7 @@
     <a href="{{ url_for('catalog.list_services') }}" class="btn btn-ghost btn-sm">View all</a>
   </div>
 
-  <div class="grid grid-4">
+  <div class="grid grid-4 reveal-stagger">
     {% for s in featured %}
     <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
       <div class="thumb">
@@ -83,7 +98,21 @@
 </section>
 {% endif %}
 
-<section class="container">
+<section class="container reveal">
+  <div class="grid grid-2" style="align-items:center;gap:48px;">
+    <div class="hero-poster-wrap reg-marks" style="margin:0;">
+      <img src="{{ url_for('static', filename='img/brand/logo-purple-bg.jpg') }}" alt="{{ company_name }} logo" loading="lazy">
+    </div>
+    <div>
+      <span class="eyebrow">Our mission</span>
+      <h2 style="margin-bottom:14px;">Honesty, transparency, and delivery you can set your watch to.</h2>
+      <p class="muted" style="font-size:1.02rem;">{{ company_name }} is a product-based business offering printing services and souvenir products. Our mission is to provide high-quality products and exceptional customer service, built on honesty, transparency, and optimum delivery — so we become the go-to destination for individuals and organisations seeking reliable printing and unique souvenirs.</p>
+      <a href="{{ url_for('main.about') }}" class="btn btn-ghost" style="margin-top:8px;">Read our full story →</a>
+    </div>
+  </div>
+</section>
+
+<section class="container reveal">
   <div class="card reg-marks" style="padding:40px;text-align:center;background:var(--purple-100);border:none;">
     <h2 style="margin-bottom:10px;">Ready to start your next job?</h2>
     <p class="muted" style="max-width:52ch;margin:0 auto 22px;">Create an account to track orders, manage bookings, and reorder your favourite print jobs in one click.</p>

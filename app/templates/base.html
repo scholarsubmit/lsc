@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 
+<link rel="icon" href="{{ url_for('static', filename='icons/favicon.png') }}" type="image/png">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
 </head>
@@ -37,10 +38,7 @@
   <div class="container header-inner">
     <a href="{{ url_for('main.home') }}" class="brand">
       <span class="brand-mark" aria-hidden="true">
-        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-          <path d="M4 9V4h18v5M4 17v5h18v-5M2 9h22v8H2V9z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-          <rect x="8" y="9" width="10" height="8" fill="currentColor" opacity="0.15"/>
-        </svg>
+        <img src="{{ url_for('static', filename='img/brand/logo-mark.png') }}" alt="" width="34" height="34">
       </span>
       <span class="brand-name">{{ company_name }}</span>
     </a>
@@ -117,9 +115,13 @@
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <span class="brand-name">{{ company_name }}</span>
+      <div class="footer-brand-mark">
+        <img src="{{ url_for('static', filename='img/brand/logo-mark.png') }}" alt="{{ company_name }} logo" width="36" height="36">
+        <span class="brand-name">{{ company_name }}</span>
+      </div>
       <p>{{ company_tagline }}</p>
       <p class="footer-meta">{{ company_email }} · {{ company_phone }}</p>
+      <p class="footer-meta">Est. {{ company_founded }} · Aba, Abia State, Nigeria</p>
     </div>
     <div class="footer-col">
       <h4>Services</h4>
@@ -148,6 +150,7 @@
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 <script src="{{ url_for('static', filename='js/pwa.js') }}"></script>
+<script src="{{ url_for('static', filename='js/reveal.js') }}"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

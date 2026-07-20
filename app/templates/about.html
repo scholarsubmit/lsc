@@ -1,24 +1,100 @@
 {% extends "base.html" %}
 {% block title %}About — {{ company_name }}{% endblock %}
 {% block content %}
-<section class="container" style="padding-top:48px;max-width:760px;">
-  <span class="eyebrow">Our story</span>
-  <h1>Print and pixels, planned and delivered.</h1>
-  <p class="muted" style="font-size:1.05rem;">{{ company_name }} started as a neighbourhood print shop and grew into a full creative partner — covering digital printing, branding, graphic design, photo enlargement and editing, photography, video coverage, and complete event planning. Wherever you are, our team plans, produces, and ships.</p>
 
-  <div class="grid grid-3" style="margin-top:40px;">
-    <div class="card reg-marks" style="padding:24px;">
-      <h3 style="font-size:1.05rem;">Print &amp; brand</h3>
-      <p class="muted" style="font-size:0.9rem;">Business cards, banners, packaging, logo and brand identity design, delivered to spec every time.</p>
+<section class="hero" style="padding-bottom:56px;">
+  <div class="container hero-grid">
+    <div class="reveal">
+      <span class="eyebrow">Our story</span>
+      <h1 style="font-size:clamp(1.9rem,3.6vw,2.8rem);">Print and pixels, planned and delivered.</h1>
+      <p class="lead">{{ company_name }} ({{ company_ticker|default("LSC") }}) Ltd is a product-based business offering printing services and souvenir products — from business cards, brochures and posters to customised mugs, t-shirts and keychains. We've been at it since {{ company_founded }}, out of Aba, Abia State.</p>
+      <span class="stamp">Registered {{ company_founded }} · Aba, Abia State, Nigeria</span>
     </div>
-    <div class="card reg-marks" style="padding:24px;">
-      <h3 style="font-size:1.05rem;">Capture &amp; edit</h3>
-      <p class="muted" style="font-size:0.9rem;">Photo shoots, video coverage, enlargement, and retouching — from studio sessions to full-day events.</p>
-    </div>
-    <div class="card reg-marks" style="padding:24px;">
-      <h3 style="font-size:1.05rem;">Plan &amp; produce</h3>
-      <p class="muted" style="font-size:0.9rem;">Event consultation and planning that ties your printed materials, visuals, and on-the-day logistics together.</p>
+    <div class="hero-visual reg-marks reveal">
+      <div class="hero-poster-wrap" style="margin-bottom:0;">
+        <img src="{{ url_for('static', filename='img/brand/logo-white-bg.jpg') }}" alt="{{ company_name }} logo">
+      </div>
     </div>
   </div>
 </section>
+
+<section class="container reveal">
+  <div class="section-head">
+    <div>
+      <h2>Our mission</h2>
+    </div>
+  </div>
+  <p class="muted" style="font-size:1.05rem;max-width:70ch;">Our mission is to provide high-quality products and exceptional customer service, built on honesty, transparency, and optimum delivery. We aim to become the go-to destination for individuals and organisations seeking reliable printing services and unique souvenirs.</p>
+</section>
+
+<section class="container reveal">
+  <div class="section-head">
+    <div>
+      <h2>Our vision</h2>
+      <p>To be the premier printing service provider in Aba, Abia and Nigeria — delivering high-quality, innovative, and customised solutions that exceed customer expectations, while fostering a culture of excellence, sustainability, and community engagement.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-3 reveal-stagger">
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Quality</h3>
+      <p class="muted" style="font-size:0.9rem;">A firm commitment to delivering high-quality printing services on every job.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Innovation</h3>
+      <p class="muted" style="font-size:0.9rem;">Embracing new technologies and techniques to stay ahead.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Customer satisfaction</h3>
+      <p class="muted" style="font-size:0.9rem;">Meeting — and working to exceed — customer expectations, every time.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Sustainability</h3>
+      <p class="muted" style="font-size:0.9rem;">Prioritising environmentally responsible practices in how we produce and package.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Community engagement</h3>
+      <p class="muted" style="font-size:0.9rem;">Building strong relationships with customers and partners across Aba and beyond.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.02rem;">Reliable delivery</h3>
+      <p class="muted" style="font-size:0.9rem;">Fast turnaround, backed by ongoing investment in printing equipment and process.</p>
+    </div>
+  </div>
+</section>
+
+<section class="container reveal">
+  <div class="section-head">
+    <div>
+      <h2>What we offer</h2>
+      <p>Our target market: individuals, businesses, and organisations seeking reliable printing services and unique souvenirs.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-3 reveal-stagger">
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.05rem;">Print &amp; brand</h3>
+      <p class="muted" style="font-size:0.9rem;">Business cards, brochures, posters, banners, packaging, and logo/brand identity design, delivered to spec every time.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.05rem;">Souvenirs &amp; branded gifts</h3>
+      <p class="muted" style="font-size:0.9rem;">Customised mugs, t-shirts, and keychains — personalised gifts for individuals, businesses, and organisations.</p>
+    </div>
+    <div class="card reg-marks" style="padding:24px;">
+      <h3 style="font-size:1.05rem;">Capture &amp; plan</h3>
+      <p class="muted" style="font-size:0.9rem;">Photo shoots, video coverage, and event consultation that ties your printed materials and visuals together.</p>
+    </div>
+  </div>
+</section>
+
+<section class="container reveal">
+  <div class="card reg-marks" style="padding:36px;background:var(--bg-elevated);border:1px solid var(--border);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent);flex-shrink:0;"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+      <h3 style="margin:0;font-size:1.05rem;">Trust &amp; credentials</h3>
+    </div>
+    <p class="muted" style="font-size:0.92rem;max-width:70ch;">{{ company_name }} has traded as a registered Ltd business since {{ company_founded }}, based in Aba, Abia State. We're adding formal certification badges (e.g. CAC registration, industry association membership) to this page as they're issued — check back, or ask us directly for our registration details.</p>
+  </div>
+</section>
+
 {% endblock %}

@@ -139,7 +139,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   font-weight: 700;
   margin-right: auto;
 }
-.brand-mark { color: var(--accent); display: flex; }
+.brand-mark { color: var(--accent); display: flex; flex-shrink: 0; }
+.brand-mark img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--purple-100); }
+[data-theme="dark"] .brand-mark img { box-shadow: 0 0 0 2px var(--purple-900); }
 .brand-name { font-size: 1.15rem; margin: 0; }
 
 .main-nav { display: flex; gap: 22px; }
@@ -303,7 +305,7 @@ section { padding: 64px 0; }
 .category-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
 
 .service-card { display: flex; flex-direction: column; }
-.service-card .thumb { aspect-ratio: 4/3; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.service-card .thumb { position: relative; aspect-ratio: 4/3; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
 .service-card .body { padding: 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .service-card h3 { font-size: 1.02rem; }
 .service-card .meta-row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
@@ -315,6 +317,27 @@ section { padding: 64px 0; }
 }
 [data-theme="dark"] .tag { background: rgba(139,92,246,0.18); color: var(--purple-300); }
 .rating { font-size: 0.85rem; color: var(--warning); }
+
+.badge-pill {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--accent); color: var(--on-accent);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;
+  padding: 4px 10px; border-radius: 999px;
+}
+.rating-row { display: flex; align-items: center; gap: 5px; font-size: 0.84rem; }
+.rating-row .stars { color: var(--warning); }
+
+/* Category chips (replaces sidebar filter on catalog list) */
+.chip-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 4px; }
+.chip {
+  display: inline-flex; align-items: center; padding: 8px 16px;
+  border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font-size: 0.88rem; font-weight: 500;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.chip:hover { border-color: var(--purple-300); color: var(--accent); }
+.chip-active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chip-active:hover { color: var(--on-accent); }
 
 /* =============== Filters / sidebar =============== */
 .catalog-layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; align-items: start; }
@@ -382,6 +405,8 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transfo
 .footer-col h4 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
 .footer-col a { display: block; color: var(--text); font-size: 0.9rem; padding: 4px 0; }
 .footer-meta { color: var(--text-muted); font-size: 0.85rem; }
+.footer-brand-mark { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.footer-brand-mark img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
 .footer-bottom { border-top: 1px solid var(--border); margin-top: 32px; padding-top: 20px; color: var(--text-muted); font-size: 0.85rem; }
 
 /* Utility */
@@ -389,3 +414,79 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transfo
 .mt-0 { margin-top: 0; }
 .muted { color: var(--text-muted); }
 .empty-state { text-align: center; padding: 64px 24px; color: var(--text-muted); }
+
+/* =============== Landing hero motion =============== */
+/* Signature moment: CMYK plates snap into registration on load — literalizes
+   the registration-mark motif as motion instead of a generic fade-up. */
+.hero-anim .eyebrow,
+.hero-anim h1 .line,
+.hero-anim p.lead,
+.hero-anim .hero-actions,
+.hero-anim .stamp {
+  opacity: 0;
+  animation: rise 640ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+.hero-anim .eyebrow { animation-delay: 80ms; }
+.hero-anim h1 .line:nth-child(1) { animation-delay: 180ms; }
+.hero-anim h1 .line:nth-child(2) { animation-delay: 280ms; }
+.hero-anim h1 .line:nth-child(3) { animation-delay: 380ms; }
+.hero-anim p.lead { animation-delay: 480ms; }
+.hero-anim .hero-actions { animation-delay: 560ms; }
+.hero-anim .stamp { animation: stamp-in 520ms cubic-bezier(.34,1.56,.64,1) forwards; animation-delay: 700ms; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes stamp-in {
+  0% { opacity: 0; transform: scale(2.2) rotate(-14deg); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+}
+
+.hero h1 { display: block; }
+.hero h1 .line { display: block; }
+
+.stamp {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 2px solid var(--accent); color: var(--accent);
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
+  text-transform: uppercase; border-radius: 999px; padding: 6px 14px;
+  transform: rotate(-8deg); margin-bottom: 20px;
+}
+
+/* CMYK plates: misaligned → register into place */
+.plate-stack { position: relative; height: 10px; margin: 18px 0; }
+.plate-stack span {
+  position: absolute; inset: 0; height: 10px; border-radius: 4px;
+  animation: register 1100ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+.plate-stack span:nth-child(1) { background: #00AEEF; animation-delay: 750ms; transform: translateX(-14px); }
+.plate-stack span:nth-child(2) { background: #EC008C; animation-delay: 850ms; transform: translateX(10px); }
+.plate-stack span:nth-child(3) { background: #FFF200; animation-delay: 950ms; transform: translateX(-6px); opacity: 0.9; }
+.plate-stack span:nth-child(4) { background: var(--ink); animation-delay: 1050ms; transform: translateX(8px); }
+@keyframes register { to { transform: translateX(0); } }
+
+.hero-visual { opacity: 0; animation: rise 700ms cubic-bezier(.2,.8,.2,1) forwards; animation-delay: 300ms; }
+.hero-poster-wrap { position: relative; overflow: hidden; border-radius: var(--radius-md); margin-bottom: 18px; }
+.hero-poster-wrap img { width: 100%; display: block; transform: scale(1.02); }
+
+/* Ambient float on the visual card's registration corners */
+.reg-marks::before, .reg-marks::after { animation: pulse-mark 3.2s ease-in-out infinite; }
+.reg-marks::after { animation-delay: 1.6s; }
+@keyframes pulse-mark { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+
+/* Scroll reveal for below-the-fold sections */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 620ms ease, transform 620ms ease; }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+.reveal-stagger.is-visible > * { transition-delay: calc(var(--i, 0) * 80ms); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim .eyebrow, .hero-anim h1 .line, .hero-anim p.lead, .hero-anim .hero-actions,
+  .hero-anim .stamp, .plate-stack span, .hero-visual, .reg-marks::before, .reg-marks::after {
+    animation: none !important; opacity: 1 !important; transform: none !important;
+  }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* =============== Trust strip =============== */
+.trust-strip { display: flex; flex-wrap: wrap; gap: 28px; align-items: center; justify-content: center; padding: 20px 0; color: var(--text-muted); font-size: 0.85rem; }
+.trust-strip span { display: inline-flex; align-items: center; gap: 8px; }
+.trust-strip svg { color: var(--accent); flex-shrink: 0; }

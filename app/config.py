@@ -17,7 +17,11 @@ class Config:
     COMPANY_TAGLINE = "Print. Brand. Create. Everywhere."
     COMPANY_EMAIL = os.environ.get("COMPANY_EMAIL", "hello@lsc.com")
     COMPANY_PHONE = os.environ.get("COMPANY_PHONE", "+234 800 000 0000")
-    CURRENCY_SYMBOL = os.environ.get("CURRENCY_SYMBOL", "$")
+    COMPANY_WHATSAPP = os.environ.get("COMPANY_WHATSAPP", "")  # digits only, e.g. 2348001234567 — used for wa.me links
+    COMPANY_ADDRESS = os.environ.get("COMPANY_ADDRESS", "Aba, Abia State, Nigeria")
+    COMPANY_FOUNDED = os.environ.get("COMPANY_FOUNDED", "2019")
+    COMPANY_CEO = os.environ.get("COMPANY_CEO", "")  # TODO: set the founder/CEO's real name via env var
+    CURRENCY_SYMBOL = os.environ.get("CURRENCY_SYMBOL", "₦")
 
     # Booking
     BOOKING_SLOT_MINUTES = 60
