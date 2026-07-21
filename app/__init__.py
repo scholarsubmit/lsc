@@ -31,6 +31,7 @@ def create_app(config_name=None):
     from app.blueprints.booking.routes import booking_bp
     from app.blueprints.cart.routes import cart_bp
     from app.blueprints.dashboard.routes import dashboard_bp
+    from app.blueprints.admin.routes import admin_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -38,6 +39,7 @@ def create_app(config_name=None):
     app.register_blueprint(booking_bp, url_prefix="/book")
     app.register_blueprint(cart_bp, url_prefix="/cart")
     app.register_blueprint(dashboard_bp, url_prefix="/dashboard")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
     # Context processor: make company info + cart count available in every template
     @app.context_processor
@@ -60,6 +62,11 @@ def create_app(config_name=None):
         }
 
     # Simple error pages
+    @app.errorhandler(403)
+    def forbidden(e):
+        from flask import render_template
+        return render_template("403.html"), 403
+
     @app.errorhandler(404)
     def not_found(e):
         from flask import render_template

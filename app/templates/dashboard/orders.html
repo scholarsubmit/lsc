@@ -5,7 +5,7 @@
   <h1 style="font-size:1.6rem;">My orders</h1>
 
   {% if orders %}
-  <table>
+  <div class="responsive-table"><table>
     <thead><tr><th>Reference</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
     <tbody>
       {% for o in orders %}
@@ -18,7 +18,7 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
   <div class="empty-state">
     <p>You haven't placed any orders yet.</p>

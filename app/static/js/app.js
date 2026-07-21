@@ -69,7 +69,50 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   });
+
+  // Password show/hide toggle (eye icon)
+  document.querySelectorAll(".password-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      btn.classList.toggle("is-showing", !showing);
+      btn.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+    });
+  });
+
+  // Mobile category filter (select-based) mirrors the desktop chip row
+  const mobileCategorySelect = document.getElementById("mobile-category-select");
+  if (mobileCategorySelect) {
+    mobileCategorySelect.addEventListener("change", () => {
+      window.location.href = mobileCategorySelect.value;
+    });
+  }
+
+  // Little celebratory confetti burst — used after a booking/order success flash
+  if (document.querySelector(".flash-success")) {
+    burstConfetti();
+  }
 });
+
+function burstConfetti() {
+  const colors = ["#5B21B6", "#8B5CF6", "#C4B5FD", "#1E9E6B"];
+  const container = document.createElement("div");
+  container.className = "confetti-layer";
+  document.body.appendChild(container);
+
+  for (let i = 0; i < 24; i++) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = Math.random() * 0.4 + "s";
+    piece.style.animationDuration = 1.6 + Math.random() * 1.2 + "s";
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.remove(), 3200);
+}
 
 function showToast(message) {
   const stack = document.getElementById("flash-stack") || (function () {

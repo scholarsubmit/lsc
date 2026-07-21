@@ -1,0 +1,73 @@
+{% extends "admin/_layout.html" %}
+{% block title %}{{ 'Edit service' if service else 'Add service' }} — {{ company_name }}{% endblock %}
+{% block admin_content %}
+<h1 style="font-size:1.4rem;">{{ 'Edit: ' + service.name if service else 'Add a new service or product' }}</h1>
+<p class="muted">This appears immediately in the public catalog once saved{{ ' and marked active' if not service }}.</p>
+
+<form method="post" enctype="multipart/form-data" class="card admin-panel" style="max-width:680px;">
+  <div class="form-row">
+    <div class="form-group">
+      <label for="name">Service name</label>
+      <input type="text" id="name" name="name" required value="{{ service.name if service else form_data.get('name', '') }}">
+    </div>
+    <div class="form-group">
+      <label for="category_id">Category</label>
+      <select id="category_id" name="category_id" required>
+        {% for c in categories %}
+        <option value="{{ c.id }}" {{ 'selected' if service and service.category_id == c.id }}>{{ c.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="price">Price ({{ currency }})</label>
+      <input type="number" step="0.01" min="0" id="price" name="price" required value="{{ service.price if service else form_data.get('price', '') }}">
+    </div>
+    <div class="form-group">
+      <label for="unit">Unit</label>
+      <input type="text" id="unit" name="unit" placeholder="item, pack, session, project, event" value="{{ service.unit if service else form_data.get('unit', 'item') }}">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="short_description">Short description</label>
+    <input type="text" id="short_description" name="short_description" placeholder="One line shown on catalog cards" value="{{ service.short_description if service else form_data.get('short_description', '') }}">
+  </div>
+
+  <div class="form-group">
+    <label for="description">Full description</label>
+    <textarea id="description" name="description" placeholder="Shown on the service detail page">{{ service.description if service else form_data.get('description', '') }}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="image">Product / service photo</label>
+    {% if service and service.image %}
+    <img src="{{ url_for('static', filename=service.image) }}" alt="" style="width:100px;height:100px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
+    {% endif %}
+    <input type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp,image/gif">
+    <p class="helper-text">JPG, PNG, GIF or WEBP. Leave blank to keep the current photo.</p>
+  </div>
+
+  <div class="form-group" style="display:flex;flex-wrap:wrap;gap:20px;">
+    <label class="checkbox-row" style="font-weight:500;">
+      <input type="checkbox" name="is_active" {{ 'checked' if not service or service.is_active }}> Active (visible to customers)
+    </label>
+    <label class="checkbox-row" style="font-weight:500;">
+      <input type="checkbox" name="is_purchasable" {{ 'checked' if not service or service.is_purchasable }}> Purchasable (add to cart)
+    </label>
+    <label class="checkbox-row" style="font-weight:500;">
+      <input type="checkbox" name="is_bookable" {{ 'checked' if service and service.is_bookable }}> Bookable (needs a scheduled session)
+    </label>
+    <label class="checkbox-row" style="font-weight:500;">
+      <input type="checkbox" name="is_featured" {{ 'checked' if service and service.is_featured }}> Featured on homepage
+    </label>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:8px;">
+    <button type="submit" class="btn btn-primary">{{ 'Save changes' if service else 'Add service' }}</button>
+    <a href="{{ url_for('admin.services') }}" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}

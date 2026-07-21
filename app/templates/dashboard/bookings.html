@@ -5,7 +5,7 @@
   <h1 style="font-size:1.6rem;">My bookings</h1>
 
   {% if bookings %}
-  <table>
+  <div class="responsive-table"><table>
     <thead><tr><th>Reference</th><th>Service</th><th>Date &amp; time</th><th>Status</th></tr></thead>
     <tbody>
       {% for b in bookings %}
@@ -17,7 +17,7 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
   <div class="empty-state">
     <p>You haven't booked any sessions yet.</p>

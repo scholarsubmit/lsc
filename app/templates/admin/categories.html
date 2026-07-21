@@ -1,0 +1,42 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Manage categories — {{ company_name }}{% endblock %}
+{% block admin_content %}
+<h1 style="font-size:1.4rem;">Categories</h1>
+<p class="muted">Group your services so customers can browse by type.</p>
+
+<div class="admin-two-col">
+  <div class="card admin-table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Services</th><th></th></tr></thead>
+      <tbody>
+        {% for c in categories %}
+        <tr>
+          <td>{{ c.name }}</td>
+          <td>{{ c.services|length }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.delete_category', category_id=c.id) }}" onsubmit="return confirm('Delete category {{ c.name }}?');">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--error);">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="muted" style="text-align:center;padding:24px;">No categories yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" class="card admin-panel">
+    <h3 style="font-size:1.05rem;margin-top:0;">Add a category</h3>
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required placeholder="e.g. Wedding Services">
+    </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <input type="text" id="description" name="description" placeholder="Shown under the category card">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Add category</button>
+  </form>
+</div>
+{% endblock %}

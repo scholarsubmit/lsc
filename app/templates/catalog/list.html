@@ -27,7 +27,11 @@
     {% for s in services %}
     <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
       <div class="thumb">
+        {% if s.image and 'placeholder' not in s.image %}
+        <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy">
+        {% else %}
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        {% endif %}
         {% if s.is_bookable %}<span class="badge-pill">Bookable</span>{% endif %}
       </div>
       <div class="body">

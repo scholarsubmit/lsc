@@ -1,0 +1,40 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Manage orders — {{ company_name }}{% endblock %}
+{% block admin_content %}
+<h1 style="font-size:1.4rem;">Orders</h1>
+<p class="muted">Every purchase placed through the storefront.</p>
+
+<div class="chip-row">
+  <a href="{{ url_for('admin.orders') }}" class="chip {{ 'chip-active' if not status_filter }}">All</a>
+  {% for s in ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'] %}
+  <a href="{{ url_for('admin.orders', status=s) }}" class="chip {{ 'chip-active' if status_filter == s }}">{{ s|title }}</a>
+  {% endfor %}
+</div>
+
+<div class="admin-table-wrap card" style="margin-top:20px;">
+  <table>
+    <thead><tr><th>Reference</th><th>Customer</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td class="ref-code">{{ o.reference }}</td>
+        <td>{{ o.customer.full_name }}<br><span class="muted" style="font-size:0.8rem;">{{ o.customer.email }}</span></td>
+        <td class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</td>
+        <td>{{ o.created_at.strftime('%d %b %Y') }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.id) }}" style="display:flex;gap:8px;align-items:center;">
+            <select name="status" onchange="this.form.submit()">
+              {% for s in ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'] %}
+              <option value="{{ s }}" {{ 'selected' if o.status == s }}>{{ s|title }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted" style="text-align:center;padding:32px;">No orders match this filter.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

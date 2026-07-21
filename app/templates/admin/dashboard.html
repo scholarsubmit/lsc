@@ -1,0 +1,76 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Admin dashboard — {{ company_name }}{% endblock %}
+{% block admin_content %}
+<h1 style="font-size:1.5rem;">Welcome back{{ ', ' + company_ceo if company_ceo }}</h1>
+<p class="muted">Here's how {{ company_name }} is doing right now.</p>
+
+<div class="grid admin-stat-grid reveal-stagger">
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Revenue (non-cancelled)</span>
+    <span class="admin-stat-value">{{ currency }}{{ "%.2f"|format(stats.revenue) }}</span>
+  </div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Total orders</span>
+    <span class="admin-stat-value">{{ stats.total_orders }}</span>
+    <span class="admin-stat-sub">{{ stats.pending_orders }} pending</span>
+  </div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Total bookings</span>
+    <span class="admin-stat-value">{{ stats.total_bookings }}</span>
+    <span class="admin-stat-sub">{{ stats.pending_bookings }} pending</span>
+  </div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Services listed</span>
+    <span class="admin-stat-value">{{ stats.total_services }}</span>
+    <span class="admin-stat-sub">{{ stats.active_services }} active</span>
+  </div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Customers</span>
+    <span class="admin-stat-value">{{ stats.total_customers }}</span>
+  </div>
+</div>
+
+<div class="admin-two-col">
+  <div class="card admin-panel">
+    <div class="section-head" style="margin-bottom:14px;">
+      <h3 style="margin:0;font-size:1.05rem;">Recent orders</h3>
+      <a href="{{ url_for('admin.orders') }}" class="btn btn-ghost btn-sm">Manage all</a>
+    </div>
+    {% for o in recent_orders %}
+    <div class="admin-row">
+      <div>
+        <span class="ref-code">{{ o.reference }}</span>
+        <p class="muted" style="margin:2px 0 0;font-size:0.82rem;">{{ o.customer.full_name }} · {{ o.created_at.strftime('%d %b, %H:%M') }}</p>
+      </div>
+      <div style="text-align:right;">
+        <span class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</span>
+        <span class="status-pill status-{{ o.status }}" style="display:block;margin-top:4px;">{{ o.status }}</span>
+      </div>
+    </div>
+    {% else %}
+    <p class="muted">No orders yet.</p>
+    {% endfor %}
+  </div>
+
+  <div class="card admin-panel">
+    <div class="section-head" style="margin-bottom:14px;">
+      <h3 style="margin:0;font-size:1.05rem;">Recent bookings</h3>
+      <a href="{{ url_for('admin.bookings') }}" class="btn btn-ghost btn-sm">Manage all</a>
+    </div>
+    {% for b in recent_bookings %}
+    <div class="admin-row">
+      <div>
+        <span class="ref-code">{{ b.reference }}</span>
+        <p class="muted" style="margin:2px 0 0;font-size:0.82rem;">{{ b.customer.full_name }} · {{ b.service.name }}</p>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:0.85rem;">{{ b.preferred_date }}</span>
+        <span class="status-pill status-{{ b.status }}" style="display:block;margin-top:4px;">{{ b.status }}</span>
+      </div>
+    </div>
+    {% else %}
+    <p class="muted">No bookings yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

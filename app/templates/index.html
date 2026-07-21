@@ -82,7 +82,11 @@
     {% for s in featured %}
     <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
       <div class="thumb">
+        {% if s.image and 'placeholder' not in s.image %}
+        <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy">
+        {% else %}
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        {% endif %}
       </div>
       <div class="body">
         <span class="tag">{{ s.category.name }}</span>
@@ -97,6 +101,23 @@
   </div>
 </section>
 {% endif %}
+
+<section class="container reveal">
+  <div class="section-head">
+    <div>
+      <h2>Recent work</h2>
+      <p>A peek at jobs fresh off the press and out of the studio.</p>
+    </div>
+  </div>
+  <div class="work-strip">
+    <img src="{{ url_for('static', filename='img/services/business-cards-sample.jpg') }}" alt="Premium business cards printed for a client" loading="lazy">
+    <img src="{{ url_for('static', filename='img/services/graphic-design-workspace.jpg') }}" alt="Brand and graphic design in progress" loading="lazy">
+    <img src="{{ url_for('static', filename='img/services/branded-polo-black.jpg') }}" alt="Custom branded polo shirt" loading="lazy">
+    <img src="{{ url_for('static', filename='img/services/event-flyer-design.jpg') }}" alt="Event flyer design for a 50th anniversary" loading="lazy">
+    <img src="{{ url_for('static', filename='img/services/video-camera-rig.jpg') }}" alt="Video coverage camera rig on location" loading="lazy">
+    <img src="{{ url_for('static', filename='img/services/branded-polo-embroidery.jpg') }}" alt="Embroidered branded polo shirts" loading="lazy">
+  </div>
+</section>
 
 <section class="container reveal">
   <div class="grid grid-2" style="align-items:center;gap:48px;">

@@ -5,7 +5,7 @@
   <h1 style="font-size:1.6rem;">Your cart</h1>
 
   {% if items %}
-  <table>
+  <div class="responsive-table"><table>
     <thead>
       <tr><th>Item</th><th>Unit price</th><th>Quantity</th><th>Subtotal</th><th></th></tr>
     </thead>
@@ -32,7 +32,7 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
 
   <div style="display:flex;justify-content:flex-end;margin-top:24px;gap:24px;align-items:center;">
     <p style="font-size:1.15rem;">Total: <span class="price">{{ currency }}{{ "%.2f"|format(total) }}</span></p>

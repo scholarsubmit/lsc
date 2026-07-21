@@ -1,0 +1,57 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Manage services — {{ company_name }}{% endblock %}
+{% block admin_content %}
+<div class="section-head" style="margin-bottom:20px;">
+  <div>
+    <h1 style="font-size:1.4rem;">Services &amp; products</h1>
+    <p class="muted">Everything customers see in the catalog. Add, edit, or take items offline anytime.</p>
+  </div>
+  <a href="{{ url_for('admin.new_service') }}" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+    Add new service
+  </a>
+</div>
+
+<div class="admin-table-wrap card">
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Category</th><th>Price</th><th>Status</th><th>Flags</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for s in services %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <img src="{{ url_for('static', filename=s.image) }}" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+            <span>{{ s.name }}</span>
+          </div>
+        </td>
+        <td>{{ s.category.name }}</td>
+        <td class="price">{{ currency }}{{ "%.2f"|format(s.price) }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.toggle_service_field', service_id=s.id, field='is_active') }}">
+            <button type="submit" class="status-pill status-{{ 'confirmed' if s.is_active else 'cancelled' }}" style="border:none;cursor:pointer;">{{ 'Active' if s.is_active else 'Hidden' }}</button>
+          </form>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            {% if s.is_featured %}<span class="tag">Featured</span>{% endif %}
+            {% if s.is_bookable %}<span class="tag">Bookable</span>{% endif %}
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;gap:8px;">
+            <a href="{{ url_for('admin.edit_service', service_id=s.id) }}" class="btn btn-ghost btn-sm">Edit</a>
+            <form method="post" action="{{ url_for('admin.delete_service', service_id=s.id) }}" onsubmit="return confirm('Delete {{ s.name }}? This cannot be undone.');">
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--error);">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted" style="text-align:center;padding:32px;">No services yet — add your first one.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

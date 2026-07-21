@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Access restricted — {{ company_name }}{% endblock %}
+{% block content %}
+<section class="container empty-state" style="padding-top:100px;">
+  <h1 style="font-size:2rem;">403</h1>
+  <p class="muted">This area is restricted to admin accounts only.</p>
+  <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to home</a>
+</section>
+{% endblock %}

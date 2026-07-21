@@ -1,0 +1,40 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Manage bookings — {{ company_name }}{% endblock %}
+{% block admin_content %}
+<h1 style="font-size:1.4rem;">Bookings</h1>
+<p class="muted">Photo shoots, video coverage, and event consultation requests.</p>
+
+<div class="chip-row">
+  <a href="{{ url_for('admin.bookings') }}" class="chip {{ 'chip-active' if not status_filter }}">All</a>
+  {% for s in ['pending', 'confirmed', 'completed', 'cancelled'] %}
+  <a href="{{ url_for('admin.bookings', status=s) }}" class="chip {{ 'chip-active' if status_filter == s }}">{{ s|title }}</a>
+  {% endfor %}
+</div>
+
+<div class="admin-table-wrap card" style="margin-top:20px;">
+  <table>
+    <thead><tr><th>Reference</th><th>Customer</th><th>Service</th><th>Date &amp; time</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for b in bookings %}
+      <tr>
+        <td class="ref-code">{{ b.reference }}</td>
+        <td>{{ b.customer.full_name }}<br><span class="muted" style="font-size:0.8rem;">{{ b.customer.phone or b.customer.email }}</span></td>
+        <td>{{ b.service.name }}{% if b.event_type %}<br><span class="muted" style="font-size:0.8rem;">{{ b.event_type }}</span>{% endif %}</td>
+        <td>{{ b.preferred_date }} at {{ b.preferred_time.strftime('%H:%M') }}</td>
+        <td>
+          <form method="post" action="{{ url_for('admin.update_booking_status', booking_id=b.id) }}" style="display:flex;gap:8px;align-items:center;">
+            <select name="status" onchange="this.form.submit()">
+              {% for s in ['pending', 'confirmed', 'completed', 'cancelled'] %}
+              <option value="{{ s }}" {{ 'selected' if b.status == s }}>{{ s|title }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="muted" style="text-align:center;padding:32px;">No bookings match this filter.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
