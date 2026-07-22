@@ -1,198 +1,76 @@
 {% extends "admin/_layout.html" %}
 {% block title %}Admin dashboard — {{ company_name }}{% endblock %}
 {% block admin_content %}
+<h1 style="font-size:1.5rem;">Welcome back{{ ', ' + company_ceo if company_ceo }}</h1>
+<p class="muted">Here's how {{ company_name }} is doing right now.</p>
 
-<!-- Page Header with animated gradient -->
-<div class="page-header reveal-up">
-  <div class="page-header-content">
-    <h1 class="page-title">
-      <span class="greeting">Welcome back</span>
-      {% if company_ceo %}<span class="ceo-name">, {{ company_ceo }}</span>{% endif %}
-    </h1>
-    <p class="page-subtitle">Here's how <strong>{{ company_name }}</strong> is performing right now.</p>
+<div class="grid admin-stat-grid reveal-stagger">
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Revenue (non-cancelled)</span>
+    <span class="admin-stat-value">{{ currency }}{{ "%.2f"|format(stats.revenue) }}</span>
   </div>
-  <div class="page-header-decoration">
-    <div class="deco-circle c1"></div>
-    <div class="deco-circle c2"></div>
-    <div class="deco-circle c3"></div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Total orders</span>
+    <span class="admin-stat-value">{{ stats.total_orders }}</span>
+    <span class="admin-stat-sub">{{ stats.pending_orders }} pending</span>
   </div>
-</div>
-
-<!-- Stats Grid -->
-<div class="stats-grid">
-  <div class="stat-card reveal-up" style="--delay:0.05s">
-    <div class="stat-icon stat-icon-revenue">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-    </div>
-    <div class="stat-body">
-      <span class="stat-label">Revenue</span>
-      <span class="stat-value" data-count="{{ stats.revenue }}" data-prefix="{{ currency }}">{{ currency }}{{ "%.2f"|format(stats.revenue) }}</span>
-      <span class="stat-sub">Non-cancelled orders</span>
-    </div>
-    <div class="stat-sparkle"></div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Total bookings</span>
+    <span class="admin-stat-value">{{ stats.total_bookings }}</span>
+    <span class="admin-stat-sub">{{ stats.pending_bookings }} pending</span>
   </div>
-
-  <div class="stat-card reveal-up" style="--delay:0.1s">
-    <div class="stat-icon stat-icon-orders">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-    </div>
-    <div class="stat-body">
-      <span class="stat-label">Total Orders</span>
-      <span class="stat-value" data-count="{{ stats.total_orders }}">{{ stats.total_orders }}</span>
-      <span class="stat-sub">{{ stats.pending_orders }} pending</span>
-    </div>
-    <div class="stat-sparkle"></div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Services listed</span>
+    <span class="admin-stat-value">{{ stats.total_services }}</span>
+    <span class="admin-stat-sub">{{ stats.active_services }} active</span>
   </div>
-
-  <div class="stat-card reveal-up" style="--delay:0.15s">
-    <div class="stat-icon stat-icon-bookings">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-    </div>
-    <div class="stat-body">
-      <span class="stat-label">Total Bookings</span>
-      <span class="stat-value" data-count="{{ stats.total_bookings }}">{{ stats.total_bookings }}</span>
-      <span class="stat-sub">{{ stats.pending_bookings }} pending</span>
-    </div>
-    <div class="stat-sparkle"></div>
-  </div>
-
-  <div class="stat-card reveal-up" style="--delay:0.2s">
-    <div class="stat-icon stat-icon-services">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-    </div>
-    <div class="stat-body">
-      <span class="stat-label">Services Listed</span>
-      <span class="stat-value" data-count="{{ stats.total_services }}">{{ stats.total_services }}</span>
-      <span class="stat-sub">{{ stats.active_services }} active</span>
-    </div>
-    <div class="stat-sparkle"></div>
-  </div>
-
-  <div class="stat-card reveal-up" style="--delay:0.25s">
-    <div class="stat-icon stat-icon-customers">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-    </div>
-    <div class="stat-body">
-      <span class="stat-label">Customers</span>
-      <span class="stat-value" data-count="{{ stats.total_customers }}">{{ stats.total_customers }}</span>
-      <span class="stat-sub">Registered accounts</span>
-    </div>
-    <div class="stat-sparkle"></div>
+  <div class="card admin-stat-card">
+    <span class="admin-stat-label">Customers</span>
+    <span class="admin-stat-value">{{ stats.total_customers }}</span>
   </div>
 </div>
 
-<!-- Two Column Panels -->
-<div class="panels-row">
-  <div class="panel-card reveal-up" style="--delay:0.3s">
-    <div class="panel-header">
-      <div class="panel-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
-      </div>
-      <h3 class="panel-title">Recent Orders</h3>
-      <a href="{{ url_for('admin.orders') }}" class="panel-action">
-        View all
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
+<div class="admin-two-col">
+  <div class="card admin-panel">
+    <div class="section-head" style="margin-bottom:14px;">
+      <h3 style="margin:0;font-size:1.05rem;">Recent orders</h3>
+      <a href="{{ url_for('admin.orders') }}" class="btn btn-ghost btn-sm">Manage all</a>
     </div>
-    <div class="panel-body">
-      {% for o in recent_orders %}
-      <div class="panel-item order-item" data-status="{{ o.status }}">
-        <div class="item-main">
-          <div class="item-avatar order-avatar">{{ o.customer.full_name[0]|upper }}</div>
-          <div class="item-info">
-            <span class="item-title">{{ o.reference }}</span>
-            <span class="item-meta">{{ o.customer.full_name }} · {{ o.created_at.strftime('%d %b, %H:%M') }}</span>
-          </div>
-        </div>
-        <div class="item-side">
-          <span class="item-price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</span>
-          <span class="status-badge status-{{ o.status }}">{{ o.status }}</span>
-        </div>
+    {% for o in recent_orders %}
+    <div class="admin-row">
+      <div>
+        <span class="ref-code">{{ o.reference }}</span>
+        <p class="muted" style="margin:2px 0 0;font-size:0.82rem;">{{ o.customer.full_name }} · {{ o.created_at.strftime('%d %b, %H:%M') }}</p>
       </div>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
-        </div>
-        <p class="empty-text">No orders yet</p>
-        <p class="empty-sub">Orders will appear here once customers start purchasing.</p>
+      <div style="text-align:right;">
+        <span class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</span>
+        <span class="status-pill status-{{ o.status }}" style="display:block;margin-top:4px;">{{ o.status }}</span>
       </div>
-      {% endfor %}
     </div>
+    {% else %}
+    <p class="muted">No orders yet.</p>
+    {% endfor %}
   </div>
 
-  <div class="panel-card reveal-up" style="--delay:0.35s">
-    <div class="panel-header">
-      <div class="panel-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      </div>
-      <h3 class="panel-title">Recent Bookings</h3>
-      <a href="{{ url_for('admin.bookings') }}" class="panel-action">
-        View all
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
+  <div class="card admin-panel">
+    <div class="section-head" style="margin-bottom:14px;">
+      <h3 style="margin:0;font-size:1.05rem;">Recent bookings</h3>
+      <a href="{{ url_for('admin.bookings') }}" class="btn btn-ghost btn-sm">Manage all</a>
     </div>
-    <div class="panel-body">
-      {% for b in recent_bookings %}
-      <div class="panel-item booking-item" data-status="{{ b.status }}">
-        <div class="item-main">
-          <div class="item-avatar booking-avatar">{{ b.customer.full_name[0]|upper }}</div>
-          <div class="item-info">
-            <span class="item-title">{{ b.reference }}</span>
-            <span class="item-meta">{{ b.customer.full_name }} · {{ b.service.name }}</span>
-          </div>
-        </div>
-        <div class="item-side">
-          <span class="item-date">{{ b.preferred_date }}</span>
-          <span class="status-badge status-{{ b.status }}">{{ b.status }}</span>
-        </div>
+    {% for b in recent_bookings %}
+    <div class="admin-row">
+      <div>
+        <span class="ref-code">{{ b.reference }}</span>
+        <p class="muted" style="margin:2px 0 0;font-size:0.82rem;">{{ b.customer.full_name }} · {{ b.service.name }}</p>
       </div>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        </div>
-        <p class="empty-text">No bookings yet</p>
-        <p class="empty-sub">Bookings will appear here once customers start scheduling.</p>
+      <div style="text-align:right;">
+        <span style="font-size:0.85rem;">{{ b.preferred_date }}</span>
+        <span class="status-pill status-{{ b.status }}" style="display:block;margin-top:4px;">{{ b.status }}</span>
       </div>
-      {% endfor %}
     </div>
+    {% else %}
+    <p class="muted">No bookings yet.</p>
+    {% endfor %}
   </div>
 </div>
-
-<script>
-(function() {
-  // Counter animation for stat values
-  const counters = document.querySelectorAll('.stat-value[data-count]');
-  counters.forEach(counter => {
-    const target = parseFloat(counter.dataset.count);
-    const prefix = counter.dataset.prefix || '';
-    const isFloat = target % 1 !== 0;
-    const duration = 1500;
-    const start = performance.now();
-
-    function update(now) {
-      const elapsed = now - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      const current = target * eased;
-      counter.textContent = prefix + (isFloat ? current.toFixed(2) : Math.floor(current).toLocaleString());
-      if (progress < 1) requestAnimationFrame(update);
-    }
-    requestAnimationFrame(update);
-  });
-
-  // Reveal on scroll
-  const revealElements = document.querySelectorAll('.reveal-up');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
-  revealElements.forEach(el => observer.observe(el));
-})();
-</script>
 {% endblock %}
