@@ -1,39 +1,764 @@
 {% extends "base.html" %}
 {% block title %}Book {{ service.name }} — {{ company_name }}{% endblock %}
 {% block content %}
-<section class="container" style="padding-top:40px;max-width:600px;margin-inline:auto;">
-  <h1 style="font-size:1.6rem;">Book: {{ service.name }}</h1>
-  <p class="muted">Pick your preferred date, time, and location. We'll confirm your booking by email within 24 hours.</p>
+<style>
+  /* ── Base Animation Keyframes ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%      { transform: translateY(-10px); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  @keyframes blob-morph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50%      { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+    75%      { border-radius: 60% 40% 60% 30% / 70% 30% 50% 60%; }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes confetti-pop {
+    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); opacity: 0; }
+  }
+  @keyframes check-draw {
+    0%   { stroke-dashoffset: 30; }
+    100% { stroke-dashoffset: 0; }
+  }
 
-  <form method="post" class="form-card">
-    <div class="form-row">
-      <div class="form-group">
-        <label for="date">Preferred date</label>
-        <input type="date" id="date" name="date" required value="{{ form_data.get('date', '') }}">
+  /* ── Page Background ── */
+  .booking-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #f5f3ff 55%, #fdf4ff 100%);
+    padding: 40px 20px;
+  }
+
+  /* Animated background blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.32;
+    animation: blob-morph 16s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 {
+    width: 500px; height: 500px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    top: -150px; left: -120px;
+    animation-delay: 0s;
+  }
+  .blob-2 {
+    width: 420px; height: 420px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    bottom: -120px; right: -100px;
+    animation-delay: -6s;
+  }
+  .blob-3 {
+    width: 320px; height: 320px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -12s;
+    opacity: 0.15;
+  }
+
+  /* Floating shapes */
+  .shape {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.1;
+  }
+  .shape-ring {
+    width: 60px; height: 60px;
+    border: 3px solid #0ea5e9;
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+  }
+  .shape-diamond {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    transform: rotate(45deg);
+    animation: float 7s ease-in-out infinite reverse;
+  }
+  .shape-ring-dashed {
+    width: 80px; height: 80px;
+    border: 2px dashed #f59e0b;
+    border-radius: 50%;
+    animation: spin 30s linear infinite;
+  }
+
+  /* ── Main Card ── */
+  .booking-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(28px) saturate(1.8);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 28px;
+    padding: 44px 40px 40px;
+    box-shadow:
+      0 4px 6px -1px rgba(0,0,0,0.04),
+      0 10px 15px -3px rgba(0,0,0,0.04),
+      0 20px 40px -10px rgba(0,0,0,0.06),
+      0 40px 60px -20px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+    animation: scaleIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  /* Card top accent */
+  .booking-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100px; height: 4px;
+    background: linear-gradient(90deg, #0ea5e9, #6366f1, #8b5cf6, #ec4899);
+    border-radius: 0 0 4px 4px;
+    animation: fadeIn 1s ease 0.6s both;
+  }
+
+  /* ── Header ── */
+  .booking-header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  }
+
+  .booking-icon {
+    width: 68px; height: 68px;
+    margin: 0 auto 18px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1, #8b5cf6);
+    background-size: 200% 200%;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.25);
+    animation: float 5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+  }
+  .booking-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+    animation: shimmer 3.5s ease-in-out infinite;
+    background-size: 200% 100%;
+  }
+  .booking-icon svg {
+    width: 30px; height: 30px;
+    color: white;
+    position: relative;
+    z-index: 1;
+  }
+
+  .booking-title {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .booking-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
+    max-width: 420px;
+    margin-inline: auto;
+    line-height: 1.5;
+  }
+
+  /* ── Service Badge ── */
+  .service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(99, 102, 241, 0.1));
+    border: 1.5px solid rgba(99, 102, 241, 0.2);
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4f46e5;
+    margin-bottom: 24px;
+    animation: fadeInUp 0.5s ease 0.3s both;
+    position: relative;
+    overflow: hidden;
+  }
+  .service-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s ease-in-out infinite;
+    background-size: 200% 100%;
+  }
+  .service-badge span {
+    position: relative;
+    z-index: 1;
+  }
+  .service-badge .badge-dot {
+    width: 8px; height: 8px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+  }
+  .service-badge .badge-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  /* ── Form ── */
+  .booking-form {
+    animation: fadeInUp 0.5s ease 0.4s both;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    transition: color 0.2s ease;
+  }
+  .form-group:focus-within label {
+    color: #6366f1;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+  .input-wrapper .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    transition: color 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .form-group:focus-within .input-icon {
+    color: #6366f1;
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .input-wrapper input,
+  .input-wrapper textarea,
+  .input-wrapper select {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #0f172a;
+    background: rgba(255,255,255,0.7);
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  .input-wrapper textarea {
+    padding: 14px 16px;
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .input-wrapper input::placeholder,
+  .input-wrapper textarea::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+  }
+  .input-wrapper input:focus,
+  .input-wrapper textarea:focus,
+  .input-wrapper select:focus {
+    border-color: #6366f1;
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(99, 102, 241, 0.08);
+  }
+
+  /* Date/Time inputs */
+  input[type="date"],
+  input[type="time"] {
+    padding-left: 44px !important;
+    padding-right: 14px;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover,
+  input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  /* Form row for side-by-side */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 520px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  /* Helper text */
+  .helper-text {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin: 6px 0 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .helper-text svg {
+    width: 14px; height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── Submit Button ── */
+  .btn-submit {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #8b5cf6 100%);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3), 0 8px 32px rgba(139, 92, 246, 0.15);
+    animation: fadeInUp 0.5s ease 0.7s both;
+    letter-spacing: 0.01em;
+    margin-top: 8px;
+  }
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  .btn-submit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4), 0 16px 48px rgba(139, 92, 246, 0.2);
+    background-position: 100% 0;
+  }
+  .btn-submit:active {
+    transform: translateY(-1px);
+  }
+  .btn-submit .btn-text {
+    position: relative;
+    z-index: 1;
+  }
+  .btn-submit .btn-arrow {
+    display: inline-block;
+    margin-left: 6px;
+    transition: transform 0.3s ease;
+  }
+  .btn-submit:hover .btn-arrow {
+    transform: translateX(4px);
+  }
+
+  /* Loading state */
+  .btn-submit.loading {
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  .btn-submit.loading .btn-text { opacity: 0; }
+  .btn-submit .spinner {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px; height: 24px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .btn-submit.loading .spinner { opacity: 1; }
+
+  /* Success state */
+  .btn-submit.success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    pointer-events: none;
+  }
+  .btn-submit.success .btn-text { opacity: 0; }
+  .btn-submit .success-icon {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    color: white;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-submit.success .success-icon {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  /* ── Error Shake ── */
+  .booking-card.shake {
+    animation: shake 0.5s ease;
+  }
+
+  /* ── Confetti ── */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: confetti-pop 1.2s ease-out forwards;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .booking-card {
+      padding: 32px 22px 28px;
+      border-radius: 22px;
+    }
+    .booking-title { font-size: 1.45rem; }
+  }
+
+  /* ── Dark mode support ── */
+  @media (prefers-color-scheme: dark) {
+    .booking-page {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 70%, #0f172a 100%);
+    }
+    .booking-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+      box-shadow:
+        0 4px 6px -1px rgba(0,0,0,0.2),
+        0 10px 15px -3px rgba(0,0,0,0.2),
+        0 20px 40px -10px rgba(0,0,0,0.3),
+        0 40px 60px -20px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .booking-title { color: #f8fafc; }
+    .booking-subtitle { color: #94a3b8; }
+    .service-badge {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.15));
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+    }
+    .input-wrapper input,
+    .input-wrapper textarea {
+      background: rgba(15, 23, 42, 0.5);
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+    .input-wrapper input:focus,
+    .input-wrapper textarea:focus {
+      background: rgba(15, 23, 42, 0.7);
+      border-color: #818cf8;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.1);
+    }
+    .input-wrapper input::placeholder,
+    .input-wrapper textarea::placeholder { color: #64748b; }
+    .helper-text { color: #64748b; }
+  }
+</style>
+
+<section class="booking-page">
+  <!-- Animated background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- Floating shapes -->
+  <div class="shape shape-ring" style="top: 10%; left: 8%;"></div>
+  <div class="shape shape-diamond" style="top: 70%; left: 6%;"></div>
+  <div class="shape shape-ring-dashed" style="bottom: 12%; right: 8%;"></div>
+  <div class="shape shape-ring" style="top: 35%; right: 10%; width: 40px; height: 40px; border-color: #8b5cf6;"></div>
+
+  <div class="booking-card" id="bookingCard">
+    <div class="booking-header">
+      <div class="booking-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
       </div>
-      <div class="form-group">
-        <label for="time">Preferred time</label>
-        <input type="time" id="time" name="time" required value="{{ form_data.get('time', '') }}">
-        <p class="helper-text">Booking hours: 9:00 AM – 6:00 PM</p>
+      <h1 class="booking-title">Book: {{ service.name }}</h1>
+      <p class="booking-subtitle">Pick your preferred date, time, and location. We'll confirm your booking by email within 24 hours.</p>
+    </div>
+
+    <!-- Service Badge -->
+    <div style="text-align:center;">
+      <div class="service-badge">
+        <span class="badge-dot"></span>
+        <span>Booking Request</span>
       </div>
     </div>
 
-    <div class="form-group">
-      <label for="event_type">Event / job type</label>
-      <input type="text" id="event_type" name="event_type" placeholder="e.g. Wedding, Product shoot, Corporate launch" value="{{ form_data.get('event_type', '') }}">
-    </div>
+    <form method="post" class="booking-form" id="bookingForm" novalidate>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="date">Preferred date</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <input type="date" id="date" name="date" required value="{{ form_data.get('date', '') }}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="time">Preferred time</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <input type="time" id="time" name="time" required value="{{ form_data.get('time', '') }}">
+          </div>
+          <p class="helper-text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Booking hours: 9:00 AM – 6:00 PM
+          </p>
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label for="location">Location</label>
-      <input type="text" id="location" name="location" placeholder="Studio visit or your on-site address" value="{{ form_data.get('location', '') }}">
-    </div>
+      <div class="form-group">
+        <label for="event_type">Event / job type</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <input type="text" id="event_type" name="event_type" placeholder="e.g. Wedding, Product shoot, Corporate launch" value="{{ form_data.get('event_type', '') }}">
+        </div>
+      </div>
 
-    <div class="form-group">
-      <label for="notes">Notes for our team</label>
-      <textarea id="notes" name="notes" placeholder="Tell us more about what you need — guest count, style, deadlines, etc.">{{ form_data.get('notes', '') }}</textarea>
-    </div>
+      <div class="form-group">
+        <label for="location">Location</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <input type="text" id="location" name="location" placeholder="Studio visit or your on-site address" value="{{ form_data.get('location', '') }}">
+        </div>
+      </div>
 
-    <button type="submit" class="btn btn-primary btn-block">Confirm booking request</button>
-  </form>
+      <div class="form-group">
+        <label for="notes">Notes for our team</label>
+        <div class="input-wrapper">
+          <textarea id="notes" name="notes" placeholder="Tell us more about what you need — guest count, style, deadlines, etc.">{{ form_data.get('notes', '') }}</textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span class="btn-text">Confirm booking request <span class="btn-arrow">→</span></span>
+        <span class="spinner"></span>
+        <svg class="success-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- Confetti container -->
+  <div class="confetti-container" id="confettiContainer"></div>
 </section>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Form Submit with Loading & Confetti ──
+  const form = document.getElementById('bookingForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const card = document.getElementById('bookingCard');
+  const confettiContainer = document.getElementById('confettiContainer');
+
+  function spawnConfetti() {
+    const colors = ['#0ea5e9', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + 'vw';
+      piece.style.top = '-10px';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.width = (Math.random() * 8 + 6) + 'px';
+      piece.style.height = (Math.random() * 8 + 6) + 'px';
+      piece.style.setProperty('--tx', (Math.random() * 200 - 100) + 'px');
+      piece.style.setProperty('--ty', (Math.random() * 400 + 300) + 'px');
+      piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+      piece.style.animationDelay = (Math.random() * 0.5) + 's';
+      piece.style.animationDuration = (Math.random() * 0.6 + 0.8) + 's';
+      confettiContainer.appendChild(piece);
+      setTimeout(() => piece.remove(), 2000);
+    }
+  }
+
+  form.addEventListener('submit', function(e) {
+    const date = document.getElementById('date');
+    const time = document.getElementById('time');
+    let valid = true;
+
+    if (!date.value.trim()) {
+      date.style.borderColor = '#ef4444';
+      valid = false;
+    }
+    if (!time.value.trim()) {
+      time.style.borderColor = '#ef4444';
+      valid = false;
+    }
+
+    if (!valid) {
+      e.preventDefault();
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+      setTimeout(() => card.classList.remove('shake'), 500);
+
+      setTimeout(() => {
+        date.style.borderColor = '';
+        time.style.borderColor = '';
+      }, 2500);
+      return;
+    }
+
+    // Show loading
+    submitBtn.classList.add('loading');
+
+    // Simulate success (remove in production — let server handle)
+    setTimeout(() => {
+      submitBtn.classList.remove('loading');
+      submitBtn.classList.add('success');
+      spawnConfetti();
+    }, 1500);
+  });
+
+  // ── Input reset on type ──
+  document.querySelectorAll('.input-wrapper input, .input-wrapper textarea').forEach(input => {
+    input.addEventListener('input', function() {
+      this.style.borderColor = '';
+    });
+  });
+
+  // ── Staggered entrance for form elements ──
+  const groups = document.querySelectorAll('.form-group');
+  groups.forEach((group, i) => {
+    group.style.opacity = '0';
+    group.style.animation = `fadeInUp 0.4s ease ${0.4 + i * 0.07}s both`;
+  });
+
+  // ── Parallax on mouse move ──
+  const page = document.querySelector('.booking-page');
+  page.addEventListener('mousemove', function(e) {
+    const x = (e.clientX / window.innerWidth - 0.5) * 20;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    document.querySelectorAll('.blob').forEach((blob, i) => {
+      const factor = (i + 1) * 0.25;
+      blob.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+    });
+  });
+
+  // ── Set min date to today ──
+  const dateInput = document.getElementById('date');
+  if (dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.setAttribute('min', today);
+  }
+
+  // ── Lazy Loader Utility (for images elsewhere on the site) ──
+  window.LazyLoader = {
+    init: function(selector = 'img[data-src]') {
+      const images = document.querySelectorAll(selector);
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.classList.add('lazy-loaded');
+              img.removeAttribute('data-src');
+              observer.unobserve(img);
+            }
+          });
+        }, { rootMargin: '50px 0px', threshold: 0.01 });
+        images.forEach(img => observer.observe(img));
+      } else {
+        images.forEach(img => {
+          img.src = img.dataset.src;
+          img.classList.add('lazy-loaded');
+        });
+      }
+    },
+    addSkeleton: function(img) {
+      img.style.background = 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)';
+      img.style.backgroundSize = '200% 100%';
+      img.style.animation = 'shimmer 1.5s infinite';
+      img.addEventListener('load', () => {
+        img.style.background = '';
+        img.style.animation = '';
+      });
+    }
+  };
+
+  if (document.querySelector('img[data-src]')) {
+    window.LazyLoader.init();
+  }
+})();
+</script>
 {% endblock %}

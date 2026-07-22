@@ -1,73 +1,269 @@
 {% extends "admin/_layout.html" %}
 {% block title %}{{ 'Edit service' if service else 'Add service' }} — {{ company_name }}{% endblock %}
 {% block admin_content %}
-<h1 style="font-size:1.4rem;">{{ 'Edit: ' + service.name if service else 'Add a new service or product' }}</h1>
-<p class="muted">This appears immediately in the public catalog once saved{{ ' and marked active' if not service }}.</p>
 
-<form method="post" enctype="multipart/form-data" class="card admin-panel" style="max-width:680px;">
-  <div class="form-row">
-    <div class="form-group">
-      <label for="name">Service name</label>
-      <input type="text" id="name" name="name" required value="{{ service.name if service else form_data.get('name', '') }}">
+<!-- Page Header -->
+<div class="page-header compact reveal-up">
+  <div class="page-header-content">
+    <h1 class="page-title">{{ 'Edit: ' + service.name if service else 'Add a new service' }}</h1>
+    <p class="page-subtitle">This appears immediately in the public catalog once saved{{ ' and marked active' if not service }}.</p>
+  </div>
+</div>
+
+<!-- Form Card -->
+<div class="form-card reveal-up" style="--delay:0.1s">
+  <form method="post" enctype="multipart/form-data" class="admin-form">
+
+    <!-- Image Upload Section -->
+    <div class="form-section image-section">
+      <label class="section-label">Product Photo</label>
+      <div class="image-upload-area" id="imageUploadArea">
+        <input type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp,image/gif" class="image-input">
+
+        {% if service and service.image %}
+        <div class="image-preview active" id="imagePreview">
+          <img src="{{ url_for('static', filename=service.image) }}" alt="" class="preview-img lazy-img" loading="lazy" onload="this.classList.add('loaded')">
+          <div class="img-skeleton"></div>
+          <button type="button" class="image-remove" id="imageRemove" title="Remove image">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        {% else %}
+        <div class="image-placeholder" id="imagePlaceholder">
+          <div class="upload-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <span class="upload-text">Drop an image or click to browse</span>
+          <span class="upload-hint">JPG, PNG, GIF or WEBP</span>
+        </div>
+        <div class="image-preview" id="imagePreview" style="display:none;">
+          <img src="" alt="" class="preview-img" id="previewImg">
+          <button type="button" class="image-remove" id="imageRemove" title="Remove image">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <div class="form-group">
-      <label for="category_id">Category</label>
-      <select id="category_id" name="category_id" required>
-        {% for c in categories %}
-        <option value="{{ c.id }}" {{ 'selected' if service and service.category_id == c.id }}>{{ c.name }}</option>
-        {% endfor %}
-      </select>
+
+    <!-- Basic Info Section -->
+    <div class="form-section">
+      <label class="section-label">Basic Information</label>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Service name <span class="required">*</span></label>
+          <input type="text" id="name" name="name" required 
+            value="{{ service.name if service else form_data.get('name', '') }}"
+            placeholder="e.g. Premium Wedding Photography">
+        </div>
+        <div class="form-group">
+          <label for="category_id">Category <span class="required">*</span></label>
+          <div class="select-wrap">
+            <select id="category_id" name="category_id" required>
+              {% for c in categories %}
+              <option value="{{ c.id }}" {{ 'selected' if service and service.category_id == c.id }}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+            <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label for="price">Price ({{ currency }})</label>
-      <input type="number" step="0.01" min="0" id="price" name="price" required value="{{ service.price if service else form_data.get('price', '') }}">
+    <!-- Pricing Section -->
+    <div class="form-section">
+      <label class="section-label">Pricing</label>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Price ({{ currency }}) <span class="required">*</span></label>
+          <div class="input-prefix">
+            <span class="prefix">{{ currency }}</span>
+            <input type="number" step="0.01" min="0" id="price" name="price" required 
+              value="{{ service.price if service else form_data.get('price', '') }}"
+              placeholder="0.00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="unit">Unit</label>
+          <input type="text" id="unit" name="unit" 
+            value="{{ service.unit if service else form_data.get('unit', 'item') }}"
+            placeholder="item, pack, session, project, event">
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="unit">Unit</label>
-      <input type="text" id="unit" name="unit" placeholder="item, pack, session, project, event" value="{{ service.unit if service else form_data.get('unit', 'item') }}">
+
+    <!-- Description Section -->
+    <div class="form-section">
+      <label class="section-label">Description</label>
+      <div class="form-group">
+        <label for="short_description">Short description</label>
+        <input type="text" id="short_description" name="short_description" 
+          value="{{ service.short_description if service else form_data.get('short_description', '') }}"
+          placeholder="One line shown on catalog cards">
+      </div>
+      <div class="form-group">
+        <label for="description">Full description</label>
+        <textarea id="description" name="description" rows="5"
+          placeholder="Detailed description shown on the service detail page">{{ service.description if service else form_data.get('description', '') }}</textarea>
+      </div>
     </div>
-  </div>
 
-  <div class="form-group">
-    <label for="short_description">Short description</label>
-    <input type="text" id="short_description" name="short_description" placeholder="One line shown on catalog cards" value="{{ service.short_description if service else form_data.get('short_description', '') }}">
-  </div>
+    <!-- Flags Section -->
+    <div class="form-section">
+      <label class="section-label">Visibility &amp; Options</label>
+      <div class="checkbox-grid">
+        <label class="checkbox-card {{ 'checked' if not service or service.is_active }}">
+          <input type="checkbox" name="is_active" {{ 'checked' if not service or service.is_active }}>
+          <div class="checkbox-visual">
+            <div class="checkbox-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="checkbox-info">
+              <span class="checkbox-title">Active</span>
+              <span class="checkbox-desc">Visible to customers</span>
+            </div>
+          </div>
+        </label>
 
-  <div class="form-group">
-    <label for="description">Full description</label>
-    <textarea id="description" name="description" placeholder="Shown on the service detail page">{{ service.description if service else form_data.get('description', '') }}</textarea>
-  </div>
+        <label class="checkbox-card {{ 'checked' if not service or service.is_purchasable }}">
+          <input type="checkbox" name="is_purchasable" {{ 'checked' if not service or service.is_purchasable }}>
+          <div class="checkbox-visual">
+            <div class="checkbox-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="checkbox-info">
+              <span class="checkbox-title">Purchasable</span>
+              <span class="checkbox-desc">Add to cart</span>
+            </div>
+          </div>
+        </label>
 
-  <div class="form-group">
-    <label for="image">Product / service photo</label>
-    {% if service and service.image %}
-    <img src="{{ url_for('static', filename=service.image) }}" alt="" style="width:100px;height:100px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
-    {% endif %}
-    <input type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp,image/gif">
-    <p class="helper-text">JPG, PNG, GIF or WEBP. Leave blank to keep the current photo.</p>
-  </div>
+        <label class="checkbox-card {{ 'checked' if service and service.is_bookable }}">
+          <input type="checkbox" name="is_bookable" {{ 'checked' if service and service.is_bookable }}>
+          <div class="checkbox-visual">
+            <div class="checkbox-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="checkbox-info">
+              <span class="checkbox-title">Bookable</span>
+              <span class="checkbox-desc">Needs scheduled session</span>
+            </div>
+          </div>
+        </label>
 
-  <div class="form-group" style="display:flex;flex-wrap:wrap;gap:20px;">
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_active" {{ 'checked' if not service or service.is_active }}> Active (visible to customers)
-    </label>
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_purchasable" {{ 'checked' if not service or service.is_purchasable }}> Purchasable (add to cart)
-    </label>
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_bookable" {{ 'checked' if service and service.is_bookable }}> Bookable (needs a scheduled session)
-    </label>
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_featured" {{ 'checked' if service and service.is_featured }}> Featured on homepage
-    </label>
-  </div>
+        <label class="checkbox-card {{ 'checked' if service and service.is_featured }}">
+          <input type="checkbox" name="is_featured" {{ 'checked' if service and service.is_featured }}>
+          <div class="checkbox-visual">
+            <div class="checkbox-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="checkbox-info">
+              <span class="checkbox-title">Featured</span>
+              <span class="checkbox-desc">Show on homepage</span>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
 
-  <div style="display:flex;gap:12px;margin-top:8px;">
-    <button type="submit" class="btn btn-primary">{{ 'Save changes' if service else 'Add service' }}</button>
-    <a href="{{ url_for('admin.services') }}" class="btn btn-ghost">Cancel</a>
-  </div>
-</form>
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-glow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        {{ 'Save changes' if service else 'Add service' }}
+      </button>
+      <a href="{{ url_for('admin.services') }}" class="btn btn-ghost btn-lg">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+(function() {
+  // Image upload preview
+  const uploadArea = document.getElementById('imageUploadArea');
+  const imageInput = document.getElementById('image');
+  const placeholder = document.getElementById('imagePlaceholder');
+  const preview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const removeBtn = document.getElementById('imageRemove');
+
+  if (uploadArea && imageInput) {
+    uploadArea.addEventListener('click', (e) => {
+      if (e.target !== imageInput && !e.target.closest('.image-remove')) {
+        imageInput.click();
+      }
+    });
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        imageInput.files = files;
+        showPreview(files[0]);
+      }
+    });
+
+    imageInput.addEventListener('change', () => {
+      if (imageInput.files.length) {
+        showPreview(imageInput.files[0]);
+      }
+    });
+  }
+
+  function showPreview(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (previewImg) previewImg.src = e.target.result;
+      if (placeholder) placeholder.style.display = 'none';
+      if (preview) {
+        preview.style.display = 'block';
+        preview.classList.add('active');
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  if (removeBtn) {
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      imageInput.value = '';
+      if (placeholder) placeholder.style.display = 'flex';
+      if (preview) {
+        preview.style.display = 'none';
+        preview.classList.remove('active');
+      }
+    });
+  }
+
+  // Checkbox card interactions
+  document.querySelectorAll('.checkbox-card').forEach(card => {
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    checkbox.addEventListener('change', () => {
+      card.classList.toggle('checked', checkbox.checked);
+    });
+  });
+
+  // Form reveal animation
+  const sections = document.querySelectorAll('.form-section');
+  sections.forEach((section, i) => {
+    section.style.opacity = '0';
+    section.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      section.style.transition = 'opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      section.style.opacity = '1';
+      section.style.transform = 'translateY(0)';
+    }, 100 * i + 200);
+  });
+})();
+</script>
 {% endblock %}

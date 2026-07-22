@@ -1,42 +1,114 @@
 {% extends "admin/_layout.html" %}
 {% block title %}Manage categories — {{ company_name }}{% endblock %}
 {% block admin_content %}
-<h1 style="font-size:1.4rem;">Categories</h1>
-<p class="muted">Group your services so customers can browse by type.</p>
 
-<div class="admin-two-col">
-  <div class="card admin-table-wrap">
-    <table>
-      <thead><tr><th>Name</th><th>Services</th><th></th></tr></thead>
-      <tbody>
-        {% for c in categories %}
-        <tr>
-          <td>{{ c.name }}</td>
-          <td>{{ c.services|length }}</td>
-          <td>
-            <form method="post" action="{{ url_for('admin.delete_category', category_id=c.id) }}" onsubmit="return confirm('Delete category {{ c.name }}?');">
-              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--error);">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="3" class="muted" style="text-align:center;padding:24px;">No categories yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- Page Header -->
+<div class="page-header compact reveal-up">
+  <div class="page-header-content">
+    <h1 class="page-title">Categories</h1>
+    <p class="page-subtitle">Group your services so customers can browse by type.</p>
+  </div>
+</div>
+
+<!-- Two Column Layout -->
+<div class="split-layout">
+  <!-- Categories List -->
+  <div class="split-left reveal-up" style="--delay:0.1s">
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="col-name">Name</th>
+              <th class="col-count">Services</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in categories %}
+            <tr class="table-row reveal-up" style="--delay:{{ 0.15 + loop.index0 * 0.04 }}s">
+              <td class="col-name">
+                <div class="category-cell">
+                  <div class="category-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg>
+                  </div>
+                  <div class="category-info">
+                    <span class="category-name">{{ c.name }}</span>
+                    {% if c.description %}<span class="category-desc">{{ c.description }}</span>{% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="col-count">
+                <span class="count-badge">{{ c.services|length }}</span>
+              </td>
+              <td class="col-actions">
+                <form method="post" action="{{ url_for('admin.delete_category', category_id=c.id) }}" 
+                      onsubmit="return confirm('Delete category {{ c.name }}?');" class="delete-form">
+                  <button type="submit" class="action-btn action-delete" title="Delete">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3">
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16"/></svg>
+                  </div>
+                  <p class="empty-text">No categories yet</p>
+                  <p class="empty-sub">Add your first category to organize services.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <form method="post" class="card admin-panel">
-    <h3 style="font-size:1.05rem;margin-top:0;">Add a category</h3>
-    <div class="form-group">
-      <label for="name">Name</label>
-      <input type="text" id="name" name="name" required placeholder="e.g. Wedding Services">
+  <!-- Add Category Form -->
+  <div class="split-right reveal-up" style="--delay:0.2s">
+    <div class="form-card sticky">
+      <div class="form-card-header">
+        <div class="form-card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <h3 class="form-card-title">Add a category</h3>
+      </div>
+      <form method="post" class="admin-form compact">
+        <div class="form-group">
+          <label for="name">Name <span class="required">*</span></label>
+          <input type="text" id="name" name="name" required placeholder="e.g. Wedding Services">
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input type="text" id="description" name="description" placeholder="Shown under the category card">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-glow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Add category
+        </button>
+      </form>
     </div>
-    <div class="form-group">
-      <label for="description">Description</label>
-      <input type="text" id="description" name="description" placeholder="Shown under the category card">
-    </div>
-    <button type="submit" class="btn btn-primary btn-block">Add category</button>
-  </form>
+  </div>
 </div>
+
+<script>
+(function() {
+  // Row reveal animation
+  const rows = document.querySelectorAll('.table-row');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05 });
+  rows.forEach(row => observer.observe(row));
+})();
+</script>
 {% endblock %}

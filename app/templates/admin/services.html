@@ -1,57 +1,133 @@
 {% extends "admin/_layout.html" %}
 {% block title %}Manage services — {{ company_name }}{% endblock %}
 {% block admin_content %}
-<div class="section-head" style="margin-bottom:20px;">
-  <div>
-    <h1 style="font-size:1.4rem;">Services &amp; products</h1>
-    <p class="muted">Everything customers see in the catalog. Add, edit, or take items offline anytime.</p>
+
+<!-- Page Header -->
+<div class="page-header compact reveal-up">
+  <div class="page-header-content">
+    <h1 class="page-title">Services &amp; Products</h1>
+    <p class="page-subtitle">Everything customers see in the catalog. Add, edit, or take items offline anytime.</p>
   </div>
-  <a href="{{ url_for('admin.new_service') }}" class="btn btn-primary">
+  <a href="{{ url_for('admin.new_service') }}" class="btn btn-primary btn-glow">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
     Add new service
   </a>
 </div>
 
-<div class="admin-table-wrap card">
-  <table>
-    <thead>
-      <tr><th>Service</th><th>Category</th><th>Price</th><th>Status</th><th>Flags</th><th></th></tr>
-    </thead>
-    <tbody>
-      {% for s in services %}
-      <tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <img src="{{ url_for('static', filename=s.image) }}" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;">
-            <span>{{ s.name }}</span>
-          </div>
-        </td>
-        <td>{{ s.category.name }}</td>
-        <td class="price">{{ currency }}{{ "%.2f"|format(s.price) }}</td>
-        <td>
-          <form method="post" action="{{ url_for('admin.toggle_service_field', service_id=s.id, field='is_active') }}">
-            <button type="submit" class="status-pill status-{{ 'confirmed' if s.is_active else 'cancelled' }}" style="border:none;cursor:pointer;">{{ 'Active' if s.is_active else 'Hidden' }}</button>
-          </form>
-        </td>
-        <td>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            {% if s.is_featured %}<span class="tag">Featured</span>{% endif %}
-            {% if s.is_bookable %}<span class="tag">Bookable</span>{% endif %}
-          </div>
-        </td>
-        <td>
-          <div style="display:flex;gap:8px;">
-            <a href="{{ url_for('admin.edit_service', service_id=s.id) }}" class="btn btn-ghost btn-sm">Edit</a>
-            <form method="post" action="{{ url_for('admin.delete_service', service_id=s.id) }}" onsubmit="return confirm('Delete {{ s.name }}? This cannot be undone.');">
-              <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--error);">Delete</button>
+<!-- Services Table Card -->
+<div class="table-card reveal-up" style="--delay:0.1s">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-service">Service</th>
+          <th class="col-category">Category</th>
+          <th class="col-price">Price</th>
+          <th class="col-status">Status</th>
+          <th class="col-flags">Flags</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in services %}
+        <tr class="table-row reveal-up" style="--delay:{{ 0.05 + loop.index0 * 0.03 }}s">
+          <td class="col-service">
+            <div class="service-cell">
+              <div class="service-img-wrap">
+                <img 
+                  src="{{ url_for('static', filename=s.image) }}" 
+                  alt="" 
+                  class="service-img lazy-img"
+                  loading="lazy"
+                  onload="this.classList.add('loaded')"
+                  onerror="this.src='{{ url_for('static', filename='img/placeholder.svg') }}'"
+                >
+                <div class="img-skeleton"></div>
+              </div>
+              <span class="service-name">{{ s.name }}</span>
+            </div>
+          </td>
+          <td class="col-category">
+            <span class="category-tag">{{ s.category.name }}</span>
+          </td>
+          <td class="col-price">
+            <span class="price-tag">{{ currency }}{{ "%.2f"|format(s.price) }}</span>
+          </td>
+          <td class="col-status">
+            <form method="post" action="{{ url_for('admin.toggle_service_field', service_id=s.id, field='is_active') }}" class="toggle-form">
+              <button type="submit" class="status-toggle {{ 'active' if s.is_active else 'inactive' }}">
+                <span class="toggle-track">
+                  <span class="toggle-thumb"></span>
+                </span>
+                <span class="toggle-label">{{ 'Active' if s.is_active else 'Hidden' }}</span>
+              </button>
             </form>
-          </div>
-        </td>
-      </tr>
-      {% else %}
-      <tr><td colspan="6" class="muted" style="text-align:center;padding:32px;">No services yet — add your first one.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          </td>
+          <td class="col-flags">
+            <div class="flag-tags">
+              {% if s.is_featured %}<span class="flag-tag flag-featured">Featured</span>{% endif %}
+              {% if s.is_bookable %}<span class="flag-tag flag-bookable">Bookable</span>{% endif %}
+              {% if s.is_purchasable %}<span class="flag-tag flag-purchasable">Shop</span>{% endif %}
+            </div>
+          </td>
+          <td class="col-actions">
+            <div class="action-group">
+              <a href="{{ url_for('admin.edit_service', service_id=s.id) }}" class="action-btn action-edit" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </a>
+              <form method="post" action="{{ url_for('admin.delete_service', service_id=s.id) }}" onsubmit="return confirm('Delete {{ s.name }}? This cannot be undone.');" class="delete-form">
+                <button type="submit" class="action-btn action-delete" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state large">
+              <div class="empty-icon animated">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+              </div>
+              <p class="empty-text">No services yet</p>
+              <p class="empty-sub">Add your first service to get started.</p>
+              <a href="{{ url_for('admin.new_service') }}" class="btn btn-primary btn-sm">Add service</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<script>
+(function() {
+  // Lazy image observer
+  const lazyImages = document.querySelectorAll('.lazy-img');
+  const imgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src || img.src;
+        imgObserver.unobserve(img);
+      }
+    });
+  }, { rootMargin: '50px' });
+  lazyImages.forEach(img => imgObserver.observe(img));
+
+  // Row reveal animation
+  const rows = document.querySelectorAll('.table-row');
+  const rowObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        rowObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05 });
+  rows.forEach(row => rowObserver.observe(row));
+})();
+</script>
 {% endblock %}
