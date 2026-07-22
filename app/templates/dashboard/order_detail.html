@@ -1,34 +1,592 @@
 {% extends "base.html" %}
 {% block title %}Order {{ order.reference }} — {{ company_name }}{% endblock %}
 {% block content %}
-<section class="container" style="padding-top:40px;max-width:700px;">
-  <h1 style="font-size:1.6rem;">Order <span class="ref-code">{{ order.reference }}</span></h1>
-  <p><span class="status-pill status-{{ order.status }}">{{ order.status }}</span> · placed {{ order.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+<style>
+  /* ── Base Animation Keyframes ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%      { transform: translateY(-10px); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes blob-morph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50%      { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+    75%      { border-radius: 60% 40% 60% 30% / 70% 30% 50% 60%; }
+  }
+  @keyframes status-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+    50%      { box-shadow: 0 0 10px 4px currentColor; }
+  }
+  @keyframes item-slide {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes price-pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  @keyframes receipt-tear {
+    0%   { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    50%  { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), 95% 100%, 90% calc(100% - 8px), 85% 100%, 80% calc(100% - 8px), 75% 100%, 70% calc(100% - 8px), 65% 100%, 60% calc(100% - 8px), 55% 100%, 50% calc(100% - 8px), 45% 100%, 40% calc(100% - 8px), 35% 100%, 30% calc(100% - 8px), 25% 100%, 20% calc(100% - 8px), 15% 100%, 10% calc(100% - 8px), 5% 100%, 0 calc(100% - 8px)); }
+    100% { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), 95% 100%, 90% calc(100% - 8px), 85% 100%, 80% calc(100% - 8px), 75% 100%, 70% calc(100% - 8px), 65% 100%, 60% calc(100% - 8px), 55% 100%, 50% calc(100% - 8px), 45% 100%, 40% calc(100% - 8px), 35% 100%, 30% calc(100% - 8px), 25% 100%, 20% calc(100% - 8px), 15% 100%, 10% calc(100% - 8px), 5% 100%, 0 calc(100% - 8px)); }
+  }
+  @keyframes checkmark-draw {
+    from { stroke-dashoffset: 30; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
-  <div class="responsive-table">
-  <table style="margin-top:20px;">
-    <thead><tr><th>Item</th><th>Unit price</th><th>Qty</th><th>Subtotal</th></tr></thead>
-    <tbody>
-      {% for item in order.items %}
-      <tr>
-        <td>{{ item.service_name }}</td>
-        <td class="price">{{ currency }}{{ "%.2f"|format(item.unit_price) }}</td>
-        <td>{{ item.quantity }}</td>
-        <td class="price">{{ currency }}{{ "%.2f"|format(item.subtotal) }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  </div>
+  /* ── Page Background ── */
+  .order-page {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 40%, #fdf4ff 100%);
+    padding: 40px 20px 60px;
+  }
 
-  <div style="text-align:right;margin-top:16px;font-size:1.1rem;">
-    Total: <span class="price">{{ currency }}{{ "%.2f"|format(order.total_amount) }}</span>
-  </div>
+  /* Animated background blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.25;
+    animation: blob-morph 18s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 {
+    width: 400px; height: 400px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    top: -100px; right: -80px;
+    animation-delay: 0s;
+  }
+  .blob-2 {
+    width: 350px; height: 350px;
+    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    bottom: -80px; left: -60px;
+    animation-delay: -6s;
+  }
 
-  <div class="card" style="padding:20px;margin-top:24px;">
-    <h4>Delivery details</h4>
-    <p class="muted">{{ order.shipping_address or "Studio pickup" }}</p>
-    <p class="muted">Payment method: {{ order.payment_method.replace('_', ' ')|title }}</p>
+  /* Floating shapes */
+  .shape {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.1;
+  }
+  .shape-ring {
+    width: 50px; height: 50px;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* ── Receipt Card ── */
+  .receipt-container {
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .receipt-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px) saturate(1.8);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 24px;
+    padding: 0;
+    box-shadow:
+      0 4px 6px -1px rgba(0,0,0,0.04),
+      0 10px 15px -3px rgba(0,0,0,0.04),
+      0 20px 40px -10px rgba(0,0,0,0.06),
+      0 40px 60px -20px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.9);
+    animation: scaleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    overflow: hidden;
+  }
+
+  /* Receipt header */
+  .receipt-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    padding: 36px 32px 28px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease 0.2s both;
+  }
+  .receipt-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  .receipt-header-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+  .receipt-icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 14px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 4s ease-in-out infinite;
+  }
+  .receipt-icon svg {
+    width: 26px; height: 26px;
+    color: white;
+  }
+  .receipt-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .receipt-ref {
+    font-family: var(--kimi-font-mono, monospace);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.06em;
+    background: rgba(255,255,255,0.15);
+    padding: 4px 14px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+
+  /* Status badge in header */
+  .receipt-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 6px 16px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: white;
+  }
+  .receipt-status::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+  .receipt-status.pending::before { background: #fbbf24; color: #fbbf24; }
+  .receipt-status.confirmed::before { background: #34d399; color: #34d399; }
+  .receipt-status.cancelled::before { background: #f87171; color: #f87171; }
+  .receipt-status.completed::before { background: #818cf8; color: #818cf8; }
+
+  /* Receipt date */
+  .receipt-date {
+    text-align: center;
+    padding: 14px 32px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+    border-bottom: 1px dashed #e2e8f0;
+    animation: fadeIn 0.4s ease 0.3s both;
+  }
+
+  /* Receipt body */
+  .receipt-body {
+    padding: 28px 32px;
+    animation: fadeInUp 0.5s ease 0.35s both;
+  }
+
+  /* Items table */
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  .items-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+    padding: 10px 0;
+    border-bottom: 2px solid #f1f5f9;
+    text-align: left;
+  }
+  .items-table thead th:last-child,
+  .items-table tbody td:last-child {
+    text-align: right;
+  }
+  .items-table tbody td {
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.92rem;
+    animation: item-slide 0.4s ease both;
+  }
+  .items-table tbody tr:last-child td {
+    border-bottom: 2px solid #f1f5f9;
+  }
+  .item-name {
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .item-price,
+  .item-qty {
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+  }
+  .item-subtotal {
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Total section */
+  .receipt-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0 8px;
+    animation: fadeInUp 0.4s ease 0.5s both;
+  }
+  .total-label {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .total-amount {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: price-pop 0.5s ease 0.7s both;
+  }
+
+  /* Receipt footer / details */
+  .receipt-details {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px dashed #e2e8f0;
+    animation: fadeInUp 0.4s ease 0.6s both;
+  }
+  .details-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .details-title svg {
+    width: 18px; height: 18px;
+    color: #6366f1;
+  }
+  .detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+  .detail-row svg {
+    width: 16px; height: 16px;
+    color: #94a3b8;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .detail-row strong {
+    color: #334155;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .detail-value {
+    color: #475569;
+    line-height: 1.5;
+  }
+
+  /* Receipt torn edge */
+  .receipt-tear {
+    height: 12px;
+    background: linear-gradient(135deg, #f8fafc, #f0f4ff);
+    position: relative;
+  }
+  .receipt-tear::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 12px;
+    background: radial-gradient(circle at 50% 0, transparent 6px, rgba(255,255,255,0.85) 6.5px);
+    background-size: 20px 12px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .receipt-header { padding: 28px 20px 22px; }
+    .receipt-body { padding: 20px 20px; }
+    .receipt-title { font-size: 1.25rem; }
+    .total-amount { font-size: 1.35rem; }
+    .items-table thead { display: none; }
+    .items-table tbody td {
+      display: block;
+      padding: 6px 0;
+      border: none;
+    }
+    .items-table tbody tr {
+      display: block;
+      padding: 14px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .items-table tbody td:last-child {
+      text-align: left;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f172a;
+      padding-top: 8px;
+    }
+  }
+
+  /* ── Dark mode support ── */
+  @media (prefers-color-scheme: dark) {
+    .order-page {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);
+    }
+    .receipt-card {
+      background: rgba(30, 41, 59, 0.75);
+      border-color: rgba(255,255,255,0.06);
+      box-shadow:
+        0 4px 6px -1px rgba(0,0,0,0.2),
+        0 10px 15px -3px rgba(0,0,0,0.2),
+        0 20px 40px -10px rgba(0,0,0,0.3),
+        0 40px 60px -20px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .receipt-date {
+      color: #64748b;
+      border-bottom-color: #334155;
+    }
+    .items-table thead th {
+      color: #64748b;
+      border-bottom-color: #334155;
+    }
+    .items-table tbody td {
+      color: #cbd5e1;
+      border-bottom-color: #334155;
+    }
+    .items-table tbody tr:last-child td {
+      border-bottom-color: #334155;
+    }
+    .item-name { color: #f1f5f9; }
+    .item-price,
+    .item-qty { color: #94a3b8; }
+    .item-subtotal { color: #f1f5f9; }
+    .total-label { color: #f8fafc; }
+    .total-amount {
+      background: linear-gradient(135deg, #818cf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .details-title { color: #f8fafc; }
+    .detail-row { color: #94a3b8; }
+    .detail-row strong { color: #cbd5e1; }
+    .detail-value { color: #94a3b8; }
+    .receipt-details { border-top-color: #334155; }
+    .receipt-tear { background: linear-gradient(135deg, #0f172a, #1e1b4b); }
+    .receipt-tear::before {
+      background: radial-gradient(circle at 50% 0, transparent 6px, rgba(30,41,59,0.75) 6.5px);
+      background-size: 20px 12px;
+    }
+  }
+</style>
+
+<section class="order-page">
+  <!-- Animated background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="shape shape-ring" style="top: 15%; left: 5%;"></div>
+
+  <div class="receipt-container">
+    <div class="receipt-card">
+      <!-- Receipt Header -->
+      <div class="receipt-header">
+        <div class="receipt-header-content">
+          <div class="receipt-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h1 class="receipt-title">Order Receipt</h1>
+          <span class="receipt-ref">{{ order.reference }}</span>
+          <div>
+            <span class="receipt-status status-{{ order.status }}">{{ order.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date -->
+      <div class="receipt-date">
+        Placed on {{ order.created_at.strftime('%d %b %Y, %H:%M') }}
+      </div>
+
+      <!-- Receipt Body -->
+      <div class="receipt-body">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Unit price</th>
+              <th>Qty</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items %}
+            <tr style="animation-delay: {{ loop.index * 0.08 }}s;">
+              <td class="item-name">{{ item.service_name }}</td>
+              <td class="item-price">{{ currency }}{{ "%.2f"|format(item.unit_price) }}</td>
+              <td class="item-qty">{{ item.quantity }}</td>
+              <td class="item-subtotal">{{ currency }}{{ "%.2f"|format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="receipt-total">
+          <span class="total-label">Total</span>
+          <span class="total-amount">{{ currency }}{{ "%.2f"|format(order.total_amount) }}</span>
+        </div>
+
+        <!-- Delivery Details -->
+        <div class="receipt-details">
+          <h4 class="details-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Delivery details
+          </h4>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <strong>Shipping address</strong>
+              <div class="detail-value">{{ order.shipping_address or "Studio pickup" }}</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <div>
+              <strong>Payment method</strong>
+              <div class="detail-value">{{ order.payment_method.replace('_', ' ')|title }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Torn edge -->
+      <div class="receipt-tear"></div>
+    </div>
   </div>
 </section>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Parallax on mouse move ──
+  const page = document.querySelector('.order-page');
+  if (page) {
+    page.addEventListener('mousemove', function(e) {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.querySelectorAll('.blob').forEach((blob, i) => {
+        const factor = (i + 1) * 0.25;
+        blob.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+      });
+    });
+  }
+
+  // ── Lazy Loader Utility ──
+  window.LazyLoader = {
+    init: function(selector = 'img[data-src]') {
+      const images = document.querySelectorAll(selector);
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.classList.add('lazy-loaded');
+              img.removeAttribute('data-src');
+              observer.unobserve(img);
+            }
+          });
+        }, { rootMargin: '50px 0px', threshold: 0.01 });
+        images.forEach(img => observer.observe(img));
+      } else {
+        images.forEach(img => {
+          img.src = img.dataset.src;
+          img.classList.add('lazy-loaded');
+        });
+      }
+    },
+    addSkeleton: function(img) {
+      img.style.background = 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)';
+      img.style.backgroundSize = '200% 100%';
+      img.style.animation = 'shimmer 1.5s infinite';
+      img.addEventListener('load', () => {
+        img.style.background = '';
+        img.style.animation = '';
+      });
+    }
+  };
+
+  if (document.querySelector('img[data-src]')) {
+    window.LazyLoader.init();
+  }
+})();
+</script>
 {% endblock %}

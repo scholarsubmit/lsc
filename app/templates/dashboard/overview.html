@@ -1,46 +1,656 @@
 {% extends "base.html" %}
 {% block title %}Dashboard — {{ company_name }}{% endblock %}
 {% block content %}
-<section class="container" style="padding-top:40px;">
-  <h1 style="font-size:1.6rem;">Welcome, {{ current_user.full_name.split(' ')[0] }}</h1>
-  <p class="muted">Here's a quick look at your recent activity.</p>
+<style>
+  /* ── Base Animation Keyframes ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%      { transform: translateY(-10px); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes blob-morph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50%      { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+    75%      { border-radius: 60% 40% 60% 30% / 70% 30% 50% 60%; }
+  }
+  @keyframes card-slide {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes status-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+    50%      { box-shadow: 0 0 8px 3px currentColor; }
+  }
+  @keyframes count-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bar-fill {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
-  <div class="grid grid-2" style="margin-top:28px;">
-    <div class="card" style="padding:22px;">
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3 style="margin:0;">Recent bookings</h3>
-        <a href="{{ url_for('dashboard.my_bookings') }}" class="btn btn-ghost btn-sm">View all</a>
-      </div>
-      {% for b in bookings %}
-      <div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="display:flex;justify-content:space-between;">
-          <span>{{ b.service.name }}</span>
-          <span class="status-pill status-{{ b.status }}">{{ b.status }}</span>
+  /* ── Page Background ── */
+  .dashboard-page {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 30%, #fdf4ff 70%, #fff7ed 100%);
+    padding: 40px 20px 60px;
+  }
+
+  /* Animated background blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.22;
+    animation: blob-morph 18s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 {
+    width: 450px; height: 450px;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    top: -120px; right: -100px;
+    animation-delay: 0s;
+  }
+  .blob-2 {
+    width: 400px; height: 400px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    bottom: -100px; left: -80px;
+    animation-delay: -6s;
+  }
+  .blob-3 {
+    width: 350px; height: 350px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -12s;
+    opacity: 0.12;
+  }
+
+  /* Floating shapes */
+  .shape {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.1;
+  }
+  .shape-ring {
+    width: 55px; height: 55px;
+    border: 3px solid #8b5cf6;
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+  }
+  .shape-diamond {
+    width: 24px; height: 24px;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1);
+    transform: rotate(45deg);
+    animation: float 7s ease-in-out infinite reverse;
+  }
+
+  /* ── Welcome Header ── */
+  .welcome-header {
+    max-width: 1100px;
+    margin: 0 auto 32px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.6s ease 0.1s both;
+  }
+  .welcome-card {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    border-radius: 24px;
+    padding: 36px 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.25);
+  }
+  .welcome-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 3.5s ease-in-out infinite;
+  }
+  .welcome-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .welcome-text h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .welcome-text p {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+  }
+  .welcome-avatar {
+    width: 64px; height: 64px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 5s ease-in-out infinite;
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+  .welcome-avatar svg {
+    width: 28px; height: 28px;
+    color: white;
+  }
+
+  /* ── Stats Row ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto 28px;
+    position: relative;
+    z-index: 1;
+  }
+  .stat-card {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 18px;
+    padding: 22px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.02);
+    animation: card-slide 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  .stat-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .stat-icon.purple { background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(236,72,153,0.1)); }
+  .stat-icon.blue { background: linear-gradient(135deg, rgba(14,165,233,0.15), rgba(99,102,241,0.1)); }
+  .stat-icon.green { background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.1)); }
+  .stat-icon.orange { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(249,115,22,0.1)); }
+  .stat-icon svg {
+    width: 20px; height: 20px;
+  }
+  .stat-icon.purple svg { color: #8b5cf6; }
+  .stat-icon.blue svg { color: #0ea5e9; }
+  .stat-icon.green svg { color: #10b981; }
+  .stat-icon.orange svg { color: #f59e0b; }
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px;
+    font-variant-numeric: tabular-nums;
+    animation: count-up 0.5s ease both;
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Dashboard Grid ── */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  @media (max-width: 720px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 420px) {
+    .stats-row { grid-template-columns: 1fr; }
+  }
+
+  /* ── Panel Card ── */
+  .panel-card {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.02);
+    animation: card-slide 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: all 0.3s ease;
+  }
+  .panel-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .panel-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title svg {
+    width: 20px; height: 20px;
+  }
+  .panel-title.purple svg { color: #8b5cf6; }
+  .panel-title.blue svg { color: #0ea5e9; }
+  .panel-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6366f1;
+    text-decoration: none;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06));
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  .panel-link:hover {
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+    transform: translateY(-1px);
+  }
+
+  /* ── List Items ── */
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    animation: fadeInUp 0.4s ease both;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+  .list-item:last-child {
+    border-bottom: none;
+  }
+  .list-item:hover {
+    background: rgba(99, 102, 241, 0.03);
+    margin: 0 -12px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border-radius: 10px;
+    border-bottom-color: transparent;
+  }
+  .list-item:hover + .list-item {
+    border-top: 1px solid transparent;
+  }
+
+  .list-item-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .list-item-title {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 4px;
+    line-height: 1.3;
+  }
+  .list-item-meta {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .list-item-meta .ref-code {
+    font-family: var(--kimi-font-mono, monospace);
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06));
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #6366f1;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .status-pill::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+  .status-pending {
+    background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(249,115,22,0.06));
+    color: #d97706;
+  }
+  .status-pending::before { background: #f59e0b; }
+  .status-confirmed {
+    background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.06));
+    color: #059669;
+  }
+  .status-confirmed::before { background: #10b981; }
+  .status-cancelled {
+    background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(220,38,38,0.06));
+    color: #dc2626;
+  }
+  .status-cancelled::before { background: #ef4444; }
+  .status-completed {
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.06));
+    color: #4f46e5;
+  }
+  .status-completed::before { background: #6366f1; }
+
+  .list-item-price {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+
+  /* ── Empty State within panel ── */
+  .panel-empty {
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeIn 0.4s ease 0.2s both;
+  }
+  .panel-empty svg {
+    width: 40px; height: 40px;
+    color: #cbd5e1;
+    margin-bottom: 12px;
+  }
+  .panel-empty p {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 0;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .welcome-card { padding: 24px 20px; }
+    .welcome-text h1 { font-size: 1.4rem; }
+    .panel-card { padding: 20px; }
+  }
+
+  /* ── Dark mode support ── */
+  @media (prefers-color-scheme: dark) {
+    .dashboard-page {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #1e293b 65%, #0f172a 100%);
+    }
+    .welcome-card {
+      background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #7c3aed 100%);
+      box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+    }
+    .stat-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .stat-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .stat-value { color: #f8fafc; }
+    .stat-label { color: #64748b; }
+    .panel-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .panel-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .panel-title { color: #f8fafc; }
+    .panel-link {
+      color: #818cf8;
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+    }
+    .panel-link:hover {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.12));
+    }
+    .list-item { border-bottom-color: #334155; }
+    .list-item:hover { background: rgba(99, 102, 241, 0.05); }
+    .list-item-title { color: #f1f5f9; }
+    .list-item-meta { color: #64748b; }
+    .list-item-meta .ref-code {
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+      color: #818cf8;
+    }
+    .list-item-price { color: #f1f5f9; }
+    .panel-empty svg { color: #475569; }
+    .panel-empty p { color: #64748b; }
+  }
+</style>
+
+<section class="dashboard-page">
+  <!-- Animated background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="shape shape-ring" style="top: 18%; left: 4%;"></div>
+  <div class="shape shape-diamond" style="bottom: 25%; right: 6%;"></div>
+
+  <!-- Welcome Header -->
+  <div class="welcome-header">
+    <div class="welcome-card">
+      <div class="welcome-content">
+        <div class="welcome-text">
+          <h1>Welcome back, {{ current_user.full_name.split(' ')[0] }}</h1>
+          <p>Here's a quick look at your recent activity</p>
         </div>
-        <p class="muted ref-code" style="font-size:0.8rem;margin:4px 0 0;">{{ b.reference }} · {{ b.preferred_date }} at {{ b.preferred_time.strftime('%H:%M') }}</p>
+        <div class="welcome-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card" style="animation-delay: 0.15s;">
+      <div class="stat-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      <div class="stat-value">{{ bookings | length }}</div>
+      <div class="stat-label">Bookings</div>
+    </div>
+    <div class="stat-card" style="animation-delay: 0.22s;">
+      <div class="stat-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <div class="stat-value">{{ orders | length }}</div>
+      <div class="stat-label">Orders</div>
+    </div>
+    <div class="stat-card" style="animation-delay: 0.29s;">
+      <div class="stat-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="stat-value">{{ currency }}{{ "%.0f"|format(orders | sum(attribute='total_amount')) }}</div>
+      <div class="stat-label">Spent</div>
+    </div>
+    <div class="stat-card" style="animation-delay: 0.36s;">
+      <div class="stat-icon orange">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="stat-value">{{ bookings | selectattr('status', 'equalto', 'pending') | list | length + orders | selectattr('status', 'equalto', 'pending') | list | length }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid">
+    <!-- Recent Bookings Panel -->
+    <div class="panel-card" style="animation-delay: 0.4s;">
+      <div class="panel-header">
+        <h3 class="panel-title purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Recent bookings
+        </h3>
+        <a href="{{ url_for('dashboard.my_bookings') }}" class="panel-link">View all</a>
+      </div>
+
+      {% for b in bookings %}
+      <div class="list-item" style="animation-delay: {{ 0.45 + loop.index * 0.06 }}s;">
+        <div class="list-item-main">
+          <p class="list-item-title">{{ b.service.name }}</p>
+          <div class="list-item-meta">
+            <span class="ref-code">{{ b.reference }}</span>
+            <span>·</span>
+            <span>{{ b.preferred_date }} at {{ b.preferred_time.strftime('%H:%M') }}</span>
+          </div>
+        </div>
+        <span class="status-pill status-{{ b.status }}">{{ b.status }}</span>
       </div>
       {% else %}
-      <p class="muted">No bookings yet.</p>
+      <div class="panel-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>No bookings yet</p>
+      </div>
       {% endfor %}
     </div>
 
-    <div class="card" style="padding:22px;">
-      <div class="section-head" style="margin-bottom:16px;">
-        <h3 style="margin:0;">Recent orders</h3>
-        <a href="{{ url_for('dashboard.my_orders') }}" class="btn btn-ghost btn-sm">View all</a>
+    <!-- Recent Orders Panel -->
+    <div class="panel-card" style="animation-delay: 0.5s;">
+      <div class="panel-header">
+        <h3 class="panel-title blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Recent orders
+        </h3>
+        <a href="{{ url_for('dashboard.my_orders') }}" class="panel-link">View all</a>
       </div>
+
       {% for o in orders %}
-      <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" style="display:block;padding:10px 0;border-bottom:1px solid var(--border);color:var(--text);">
-        <div style="display:flex;justify-content:space-between;">
-          <span class="ref-code">{{ o.reference }}</span>
-          <span class="status-pill status-{{ o.status }}">{{ o.status }}</span>
+      <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="list-item" style="animation-delay: {{ 0.55 + loop.index * 0.06 }}s;">
+        <div class="list-item-main">
+          <p class="list-item-title">{{ o.reference }}</p>
+          <div class="list-item-meta">
+            <span>{{ o.created_at.strftime('%d %b %Y') }}</span>
+            <span>·</span>
+            <span>{{ o.items | length }} item{{ 's' if o.items | length != 1 else '' }}</span>
+          </div>
         </div>
-        <p class="muted" style="font-size:0.8rem;margin:4px 0 0;">{{ currency }}{{ "%.2f"|format(o.total_amount) }} · {{ o.created_at.strftime('%d %b %Y') }}</p>
+        <span class="list-item-price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</span>
       </a>
       {% else %}
-      <p class="muted">No orders yet.</p>
+      <div class="panel-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <p>No orders yet</p>
+      </div>
       {% endfor %}
     </div>
   </div>
 </section>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Parallax on mouse move ──
+  const page = document.querySelector('.dashboard-page');
+  if (page) {
+    page.addEventListener('mousemove', function(e) {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.querySelectorAll('.blob').forEach((blob, i) => {
+        const factor = (i + 1) * 0.25;
+        blob.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+      });
+    });
+  }
+
+  // ── Lazy Loader Utility ──
+  window.LazyLoader = {
+    init: function(selector = 'img[data-src]') {
+      const images = document.querySelectorAll(selector);
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.classList.add('lazy-loaded');
+              img.removeAttribute('data-src');
+              observer.unobserve(img);
+            }
+          });
+        }, { rootMargin: '50px 0px', threshold: 0.01 });
+        images.forEach(img => observer.observe(img));
+      } else {
+        images.forEach(img => {
+          img.src = img.dataset.src;
+          img.classList.add('lazy-loaded');
+        });
+      }
+    },
+    addSkeleton: function(img) {
+      img.style.background = 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)';
+      img.style.backgroundSize = '200% 100%';
+      img.style.animation = 'shimmer 1.5s infinite';
+      img.addEventListener('load', () => {
+        img.style.background = '';
+        img.style.animation = '';
+      });
+    }
+  };
+
+  if (document.querySelector('img[data-src]')) {
+    window.LazyLoader.init();
+  }
+})();
+</script>
 {% endblock %}

@@ -1,29 +1,590 @@
 {% extends "base.html" %}
 {% block title %}My orders — {{ company_name }}{% endblock %}
 {% block content %}
-<section class="container" style="padding-top:40px;">
-  <h1 style="font-size:1.6rem;">My orders</h1>
+<style>
+  /* ── Base Animation Keyframes ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%      { transform: translateY(-10px); }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes blob-morph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50%      { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+    75%      { border-radius: 60% 40% 60% 30% / 70% 30% 50% 60%; }
+  }
+  @keyframes card-slide {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes status-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+    50%      { box-shadow: 0 0 8px 3px currentColor; }
+  }
+  @keyframes ref-glow {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+  }
+  @keyframes arrow-slide {
+    from { transform: translateX(0); opacity: 0.5; }
+    to   { transform: translateX(4px); opacity: 1; }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Page Background ── */
+  .orders-page {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 40%, #fdf4ff 100%);
+    padding: 40px 20px 60px;
+  }
+
+  /* Animated background blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.25;
+    animation: blob-morph 18s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 {
+    width: 400px; height: 400px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    top: -100px; right: -80px;
+    animation-delay: 0s;
+  }
+  .blob-2 {
+    width: 350px; height: 350px;
+    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    bottom: -80px; left: -60px;
+    animation-delay: -6s;
+  }
+
+  /* Floating shapes */
+  .shape {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.1;
+  }
+  .shape-ring {
+    width: 50px; height: 50px;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    max-width: 1100px;
+    margin: 0 auto 32px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.6s ease 0.1s both;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-content h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .header-content p {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+  }
+  .header-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
+    animation: float 5s ease-in-out infinite;
+  }
+  .header-icon svg {
+    width: 26px; height: 26px;
+    color: white;
+  }
+
+  /* ── Stats Bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto 28px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.5s ease 0.2s both;
+  }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .stat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .stat-dot.pending { background: #f59e0b; }
+  .stat-dot.processing { background: #6366f1; }
+  .stat-dot.shipped { background: #0ea5e9; }
+  .stat-dot.delivered { background: #10b981; }
+  .stat-dot.cancelled { background: #ef4444; }
+
+  /* ── Orders Grid ── */
+  .orders-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  .order-card {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.02);
+    animation: card-slide 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .order-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08), 0 4px 12px rgba(99, 102, 241, 0.1);
+    border-color: rgba(139, 92, 246, 0.15);
+  }
+  .order-card:hover::before {
+    opacity: 1;
+  }
+
+  .order-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .order-ref {
+    font-family: var(--kimi-font-mono, monospace);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6366f1;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.08));
+    padding: 4px 12px;
+    border-radius: 8px;
+    animation: ref-glow 3s ease-in-out infinite;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .status-pill::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: status-pulse 2s ease-in-out infinite;
+  }
+  .status-pending {
+    background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(249,115,22,0.08));
+    color: #d97706;
+  }
+  .status-pending::before { background: #f59e0b; color: #f59e0b; }
+  .status-processing {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+    color: #4f46e5;
+  }
+  .status-processing::before { background: #6366f1; color: #6366f1; }
+  .status-shipped {
+    background: linear-gradient(135deg, rgba(14,165,233,0.12), rgba(6,182,212,0.08));
+    color: #0284c7;
+  }
+  .status-shipped::before { background: #0ea5e9; color: #0ea5e9; }
+  .status-delivered {
+    background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.08));
+    color: #059669;
+  }
+  .status-delivered::before { background: #10b981; color: #10b981; }
+  .status-cancelled {
+    background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.08));
+    color: #dc2626;
+  }
+  .status-cancelled::before { background: #ef4444; color: #ef4444; }
+
+  .order-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    margin: 0 0 6px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .order-date {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .order-date svg {
+    width: 14px; height: 14px;
+  }
+
+  .order-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid rgba(226, 232, 240, 0.6);
+  }
+  .view-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #6366f1;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .view-link svg {
+    width: 16px; height: 16px;
+    transition: transform 0.3s ease;
+  }
+  .order-card:hover .view-link svg {
+    transform: translateX(4px);
+  }
+  .view-link:hover {
+    color: #4f46e5;
+  }
+  .item-count {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center;
+    padding: 100px 20px;
+    animation: scaleIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    position: relative;
+    z-index: 1;
+  }
+  .empty-illustration {
+    width: 140px; height: 140px;
+    margin: 0 auto 28px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 6s ease-in-out infinite;
+    position: relative;
+  }
+  .empty-illustration::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    border: 2px dashed rgba(99, 102, 241, 0.2);
+    animation: spin 30s linear infinite;
+  }
+  .empty-illustration svg {
+    width: 52px; height: 52px;
+    color: #6366f1;
+  }
+  .empty-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px;
+  }
+  .empty-text {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0 0 28px;
+    max-width: 320px;
+    margin-inline: auto;
+  }
+  .btn-browse {
+    padding: 14px 28px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+  }
+  .btn-browse:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .header-content h1 { font-size: 1.6rem; }
+    .orders-grid { grid-template-columns: 1fr; }
+    .stats-bar { flex-wrap: wrap; }
+  }
+
+  /* ── Dark mode support ── */
+  @media (prefers-color-scheme: dark) {
+    .orders-page {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);
+    }
+    .header-content h1 { color: #f8fafc; }
+    .header-content p { color: #94a3b8; }
+    .stat-pill {
+      background: rgba(30, 41, 59, 0.6);
+      border-color: rgba(255,255,255,0.06);
+      color: #cbd5e1;
+    }
+    .order-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .order-card:hover {
+      border-color: rgba(139, 92, 246, 0.2);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.2), 0 4px 12px rgba(139, 92, 246, 0.1);
+    }
+    .order-amount {
+      background: linear-gradient(135deg, #818cf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .order-date { color: #64748b; }
+    .view-link { color: #818cf8; }
+    .view-link:hover { color: #a78bfa; }
+    .item-count { color: #64748b; }
+    .order-footer { border-top-color: #334155; }
+    .empty-title { color: #f8fafc; }
+    .empty-text { color: #94a3b8; }
+  }
+</style>
+
+<section class="orders-page">
+  <!-- Animated background blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="shape shape-ring" style="top: 20%; left: 5%;"></div>
+
+  <div class="page-header">
+    <div class="header-content">
+      <h1>My orders</h1>
+      <p>View and track all your purchases</p>
+    </div>
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </div>
+  </div>
 
   {% if orders %}
-  <div class="responsive-table"><table>
-    <thead><tr><th>Reference</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr></thead>
-    <tbody>
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-pill">
+      <span class="stat-dot pending"></span>
+      {{ orders | selectattr('status', 'equalto', 'pending') | list | length }} Pending
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot processing"></span>
+      {{ orders | selectattr('status', 'equalto', 'processing') | list | length }} Processing
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot shipped"></span>
+      {{ orders | selectattr('status', 'equalto', 'shipped') | list | length }} Shipped
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot delivered"></span>
+      {{ orders | selectattr('status', 'equalto', 'delivered') | list | length }} Delivered
+    </div>
+  </div>
+
+  <div class="orders-container">
+    <div class="orders-grid">
       {% for o in orders %}
-      <tr>
-        <td class="ref-code">{{ o.reference }}</td>
-        <td class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</td>
-        <td><span class="status-pill status-{{ o.status }}">{{ o.status }}</span></td>
-        <td>{{ o.created_at.strftime('%d %b %Y') }}</td>
-        <td><a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="btn btn-ghost btn-sm">View</a></td>
-      </tr>
+      <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="order-card" style="animation-delay: {{ loop.index * 0.08 }}s;">
+        <div class="order-header-row">
+          <span class="order-ref">{{ o.reference }}</span>
+          <span class="status-pill status-{{ o.status }}">{{ o.status }}</span>
+        </div>
+        <div class="order-amount">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</div>
+        <div class="order-date">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          {{ o.created_at.strftime('%d %b %Y') }}
+        </div>
+        <div class="order-footer">
+          <span class="view-link">
+            View details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </span>
+          <span class="item-count">{{ o.items | length }} item{{ 's' if o.items | length != 1 else '' }}</span>
+        </div>
+      </a>
       {% endfor %}
-    </tbody>
-  </table></div>
+    </div>
+  </div>
   {% else %}
   <div class="empty-state">
-    <p>You haven't placed any orders yet.</p>
-    <a href="{{ url_for('catalog.list_services') }}" class="btn btn-primary" style="margin-top:12px;">Browse services</a>
+    <div class="empty-illustration">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </div>
+    <h2 class="empty-title">No orders yet</h2>
+    <p class="empty-text">You haven't placed any orders yet. Browse our services and make your first purchase!</p>
+    <a href="{{ url_for('catalog.list_services') }}" class="btn-browse">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Browse services
+    </a>
   </div>
   {% endif %}
 </section>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Parallax on mouse move ──
+  const page = document.querySelector('.orders-page');
+  if (page) {
+    page.addEventListener('mousemove', function(e) {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.querySelectorAll('.blob').forEach((blob, i) => {
+        const factor = (i + 1) * 0.25;
+        blob.style.transform = `translate(${x * factor}px, ${y * factor}px)`;
+      });
+    });
+  }
+
+  // ── Lazy Loader Utility ──
+  window.LazyLoader = {
+    init: function(selector = 'img[data-src]') {
+      const images = document.querySelectorAll(selector);
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              img.src = img.dataset.src;
+              img.classList.add('lazy-loaded');
+              img.removeAttribute('data-src');
+              observer.unobserve(img);
+            }
+          });
+        }, { rootMargin: '50px 0px', threshold: 0.01 });
+        images.forEach(img => observer.observe(img));
+      } else {
+        images.forEach(img => {
+          img.src = img.dataset.src;
+          img.classList.add('lazy-loaded');
+        });
+      }
+    },
+    addSkeleton: function(img) {
+      img.style.background = 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)';
+      img.style.backgroundSize = '200% 100%';
+      img.style.animation = 'shimmer 1.5s infinite';
+      img.addEventListener('load', () => {
+        img.style.background = '';
+        img.style.animation = '';
+      });
+    }
+  };
+
+  if (document.querySelector('img[data-src]')) {
+    window.LazyLoader.init();
+  }
+})();
+</script>
 {% endblock %}
