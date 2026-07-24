@@ -1,0 +1,29 @@
+# render.yaml
+services:
+  - type: web
+    name: lsc
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python seed.py
+    startCommand: gunicorn run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lsc_db
+          property: connectionString
+      - key: COMPANY_NAME
+        value: Les Starry Corporate
+      - key: COMPANY_EMAIL
+        value: lesstarrycorporate@gmail.com
+      - key: CURRENCY_SYMBOL
+        value: ₦
+
+databases:
+  - name: lsc_db
+    plan: free
