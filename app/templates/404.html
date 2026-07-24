@@ -1,9 +1,13 @@
+<!-- app/templates/404.html -->
 {% extends "base.html" %}
-{% block title %}Page not found — {{ company_name }}{% endblock %}
+{% block title %}Page Not Found — {{ company_name }}{% endblock %}
+
 {% block content %}
-<section class="container empty-state" style="padding-top:100px;">
-  <h1 style="font-size:2rem;">404</h1>
-  <p class="muted">We couldn't find that page. It may have been moved or the link is out of date.</p>
-  <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to home</a>
-</section>
+<div style="text-align: center; padding: 80px 20px;">
+    <h1 style="font-size: 4rem; margin: 0; color: #8b5cf6;">404</h1>
+    <h2 style="font-size: 1.5rem; margin: 8px 0;">Page Not Found</h2>
+    <p style="color: #64748b; margin-bottom: 24px;">Sorry, the page you're looking for doesn't exist.</p>
+    <!-- FIXED: Changed from 'main.home' to 'main.index' -->
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
+</div>
 {% endblock %}

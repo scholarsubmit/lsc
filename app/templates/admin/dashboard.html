@@ -1,76 +1,234 @@
+<!-- app/templates/admin/dashboard.html -->
 {% extends "admin/_layout.html" %}
-{% block title %}Admin dashboard — {{ company_name }}{% endblock %}
-{% block admin_content %}
-<h1 style="font-size:1.5rem;">Welcome back{{ ', ' + company_ceo if company_ceo }}</h1>
-<p class="muted">Here's how {{ company_name }} is doing right now.</p>
+{% block title %}Dashboard — {{ company_name }}{% endblock %}
 
-<div class="grid admin-stat-grid reveal-stagger">
-  <div class="card admin-stat-card">
-    <span class="admin-stat-label">Revenue (non-cancelled)</span>
-    <span class="admin-stat-value">{{ currency }}{{ "%.2f"|format(stats.revenue) }}</span>
+{% block admin_content %}
+<style>
+  /* ── Dashboard Stats ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card, white);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 20px 24px;
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    border-color: rgba(139, 92, 246, 0.15);
+  }
+  .stat-card .stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, #64748b);
+  }
+  .stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-color, #0f172a);
+    margin: 4px 0;
+  }
+  .stat-card .stat-icon {
+    float: right;
+    font-size: 2rem;
+    opacity: 0.2;
+  }
+  .stat-card.primary .stat-value { color: #8b5cf6; }
+  .stat-card.success .stat-value { color: #10b981; }
+  .stat-card.warning .stat-value { color: #f59e0b; }
+  .stat-card.danger .stat-value { color: #ef4444; }
+  .stat-card.info .stat-value { color: #3b82f6; }
+
+  /* ── Recent Activity ── */
+  .recent-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .recent-card {
+    background: var(--bg-card, white);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .recent-card h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--text-color, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .recent-card .view-all {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #8b5cf6;
+    text-decoration: none;
+  }
+  .recent-card .view-all:hover { text-decoration: underline; }
+
+  .recent-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+  }
+  .recent-item:last-child { border-bottom: none; }
+  .recent-item .item-info { font-size: 0.9rem; }
+  .recent-item .item-info .item-name { font-weight: 500; color: var(--text-color, #0f172a); }
+  .recent-item .item-info .item-meta { font-size: 0.8rem; color: var(--text-muted, #64748b); }
+  .recent-item .item-status {
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .status-pending { background: #fef3c7; color: #d97706; }
+  .status-paid { background: #dbeafe; color: #2563eb; }
+  .status-processing { background: #e0e7ff; color: #4f46e5; }
+  .status-shipped { background: #cffafe; color: #0891b2; }
+  .status-completed { background: #d1fae5; color: #059669; }
+  .status-cancelled { background: #fee2e2; color: #dc2626; }
+  .status-confirmed { background: #d1fae5; color: #059669; }
+
+  .empty-recent {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted, #64748b);
+    font-size: 0.9rem;
+  }
+
+  /* ── Dark Mode ── */
+  @media (prefers-color-scheme: dark) {
+    .stat-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+    }
+    .stat-card:hover {
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    .stat-card .stat-value { color: #f8fafc; }
+    .stat-card .stat-label { color: #94a3b8; }
+
+    .recent-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+    }
+    .recent-card h4 { color: #f8fafc; }
+    .recent-item {
+      border-bottom-color: rgba(255,255,255,0.04);
+    }
+    .recent-item .item-info .item-name { color: #f1f5f9; }
+    .recent-item .item-info .item-meta { color: #94a3b8; }
+    .empty-recent { color: #94a3b8; }
+  }
+
+  @media (max-width: 768px) {
+    .recent-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card primary">
+    <span class="stat-icon">📦</span>
+    <div class="stat-label">Total Services</div>
+    <div class="stat-value">{{ stats.total_services }}</div>
+    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+      {{ stats.active_services }} active
+    </div>
   </div>
-  <div class="card admin-stat-card">
-    <span class="admin-stat-label">Total orders</span>
-    <span class="admin-stat-value">{{ stats.total_orders }}</span>
-    <span class="admin-stat-sub">{{ stats.pending_orders }} pending</span>
+
+  <div class="stat-card warning">
+    <span class="stat-icon">🛒</span>
+    <div class="stat-label">Orders</div>
+    <div class="stat-value">{{ stats.total_orders }}</div>
+    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+      {{ stats.pending_orders }} pending
+    </div>
   </div>
-  <div class="card admin-stat-card">
-    <span class="admin-stat-label">Total bookings</span>
-    <span class="admin-stat-value">{{ stats.total_bookings }}</span>
-    <span class="admin-stat-sub">{{ stats.pending_bookings }} pending</span>
+
+  <div class="stat-card info">
+    <span class="stat-icon">📅</span>
+    <div class="stat-label">Bookings</div>
+    <div class="stat-value">{{ stats.total_bookings }}</div>
+    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+      {{ stats.pending_bookings }} pending
+    </div>
   </div>
-  <div class="card admin-stat-card">
-    <span class="admin-stat-label">Services listed</span>
-    <span class="admin-stat-value">{{ stats.total_services }}</span>
-    <span class="admin-stat-sub">{{ stats.active_services }} active</span>
-  </div>
-  <div class="card admin-stat-card">
-    <span class="admin-stat-label">Customers</span>
-    <span class="admin-stat-value">{{ stats.total_customers }}</span>
+
+  <div class="stat-card success">
+    <span class="stat-icon">💰</span>
+    <div class="stat-label">Revenue</div>
+    <div class="stat-value">{{ currency }}{{ "%.2f"|format(stats.revenue) }}</div>
+    <div style="font-size: 0.8rem; color: var(--text-muted, #64748b);">
+      {{ stats.total_customers }} customers
+    </div>
   </div>
 </div>
 
-<div class="admin-two-col">
-  <div class="card admin-panel">
-    <div class="section-head" style="margin-bottom:14px;">
-      <h3 style="margin:0;font-size:1.05rem;">Recent orders</h3>
-      <a href="{{ url_for('admin.orders') }}" class="btn btn-ghost btn-sm">Manage all</a>
-    </div>
-    {% for o in recent_orders %}
-    <div class="admin-row">
-      <div>
-        <span class="ref-code">{{ o.reference }}</span>
-        <p class="muted" style="margin:2px 0 0;font-size:0.82rem;">{{ o.customer.full_name }} · {{ o.created_at.strftime('%d %b, %H:%M') }}</p>
+<!-- Recent Activity -->
+<div class="recent-grid">
+  <!-- Recent Orders -->
+  <div class="recent-card">
+    <h4>
+      <i class="fas fa-clock" style="color: #8b5cf6;" aria-hidden="true"></i>
+      Recent Orders
+      <a href="{{ url_for('admin.orders') }}" class="view-all">View all →</a>
+    </h4>
+    {% if recent_orders %}
+      {% for order in recent_orders %}
+      <div class="recent-item">
+        <div class="item-info">
+          <div class="item-name">#{{ order.reference }}</div>
+          <div class="item-meta">{{ order.created_at.strftime('%b %d, %Y') }}</div>
+        </div>
+        <span class="item-status status-{{ order.status }}">{{ order.status }}</span>
       </div>
-      <div style="text-align:right;">
-        <span class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</span>
-        <span class="status-pill status-{{ o.status }}" style="display:block;margin-top:4px;">{{ o.status }}</span>
-      </div>
-    </div>
+      {% endfor %}
     {% else %}
-    <p class="muted">No orders yet.</p>
-    {% endfor %}
+      <div class="empty-recent">No orders yet</div>
+    {% endif %}
   </div>
 
-  <div class="card admin-panel">
-    <div class="section-head" style="margin-bottom:14px;">
-      <h3 style="margin:0;font-size:1.05rem;">Recent bookings</h3>
-      <a href="{{ url_for('admin.bookings') }}" class="btn btn-ghost btn-sm">Manage all</a>
-    </div>
-    {% for b in recent_bookings %}
-    <div class="admin-row">
-      <div>
-        <span class="ref-code">{{ b.reference }}</span>
-        <p class="muted" style="margin:2px 0 0;font-size:0.82rem;">{{ b.customer.full_name }} · {{ b.service.name }}</p>
+  <!-- Recent Bookings -->
+  <div class="recent-card">
+    <h4>
+      <i class="fas fa-calendar-check" style="color: #8b5cf6;" aria-hidden="true"></i>
+      Recent Bookings
+      <a href="{{ url_for('admin.bookings') }}" class="view-all">View all →</a>
+    </h4>
+    {% if recent_bookings %}
+      {% for booking in recent_bookings %}
+      <div class="recent-item">
+        <div class="item-info">
+          <div class="item-name">#{{ booking.reference }}</div>
+          <div class="item-meta">{{ booking.created_at.strftime('%b %d, %Y') }}</div>
+        </div>
+        <span class="item-status status-{{ booking.status }}">{{ booking.status }}</span>
       </div>
-      <div style="text-align:right;">
-        <span style="font-size:0.85rem;">{{ b.preferred_date }}</span>
-        <span class="status-pill status-{{ b.status }}" style="display:block;margin-top:4px;">{{ b.status }}</span>
-      </div>
-    </div>
+      {% endfor %}
     {% else %}
-    <p class="muted">No bookings yet.</p>
-    {% endfor %}
+      <div class="empty-recent">No bookings yet</div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

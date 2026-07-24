@@ -1,46 +1,68 @@
-from datetime import datetime
-
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+# app/blueprints/booking/routes.py
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
-
+from datetime import datetime, date, time
 from app.extensions import db
 from app.models import Service, Booking
 
 booking_bp = Blueprint("booking", __name__)
 
 
-@booking_bp.route("/<slug>", methods=["GET", "POST"])
+@booking_bp.route("/new/<slug>", methods=["GET", "POST"])
 @login_required
 def new_booking(slug):
-    service = Service.query.filter_by(slug=slug, is_bookable=True, is_active=True).first_or_404()
-
+    service = Service.query.filter_by(slug=slug, is_active=True).first_or_404()
+    
+    if not service.is_bookable:
+        flash("This service is not bookable.", "error")
+        return redirect(url_for("catalog.detail", slug=service.slug))
+    
+    form_data = {}
+    
     if request.method == "POST":
-        date_str = request.form.get("date")
-        time_str = request.form.get("time")
+        # Get form data
+        preferred_date_str = request.form.get("preferred_date", "").strip()
+        preferred_time_str = request.form.get("preferred_time", "").strip()
         location = request.form.get("location", "").strip()
         event_type = request.form.get("event_type", "").strip()
         notes = request.form.get("notes", "").strip()
-
-        error = None
-        preferred_date = preferred_time = None
+        
+        # Store form data for repopulating
+        form_data = {
+            'preferred_date': preferred_date_str,
+            'preferred_time': preferred_time_str,
+            'location': location,
+            'event_type': event_type,
+            'notes': notes
+        }
+        
+        # Validate date and time
+        if not preferred_date_str or not preferred_time_str:
+            flash("Please select a valid date and time.", "error")
+            return render_template("booking/new.html", service=service, form_data=form_data)
+        
         try:
-            preferred_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-            preferred_time = datetime.strptime(time_str, "%H:%M").time()
-        except (ValueError, TypeError):
-            error = "Please choose a valid date and time."
-
-        if not error and preferred_date < datetime.utcnow().date():
-            error = "Please choose a date in the future."
-
-        open_hr = current_app.config["BUSINESS_OPEN_HOUR"]
-        close_hr = current_app.config["BUSINESS_CLOSE_HOUR"]
-        if not error and preferred_time and not (open_hr <= preferred_time.hour < close_hr):
-            error = f"Our booking hours are {open_hr}:00 – {close_hr}:00. Please pick a time in this range."
-
-        if error:
-            flash(error, "error")
-            return render_template("booking/new.html", service=service, form_data=request.form)
-
+            # Parse date and time
+            preferred_date = datetime.strptime(preferred_date_str, "%Y-%m-%d").date()
+            preferred_time = datetime.strptime(preferred_time_str, "%H:%M").time()
+        except ValueError:
+            flash("Invalid date or time format. Please try again.", "error")
+            return render_template("booking/new.html", service=service, form_data=form_data)
+        
+        # Validate date is not in the past
+        today = date.today()
+        if preferred_date < today:
+            flash("Please select today or a future date.", "error")
+            return render_template("booking/new.html", service=service, form_data=form_data)
+        
+        # Validate time is within business hours (9 AM - 6 PM)
+        business_open = time(9, 0)
+        business_close = time(18, 0)
+        if preferred_time < business_open or preferred_time > business_close:
+            flash("Please select a time between 9:00 AM and 6:00 PM.", "error")
+            return render_template("booking/new.html", service=service, form_data=form_data)
+        
+        # Create booking
         booking = Booking(
             user_id=current_user.id,
             service_id=service.id,
@@ -49,11 +71,21 @@ def new_booking(slug):
             location=location,
             event_type=event_type,
             notes=notes,
+            status="pending"
         )
+        
         db.session.add(booking)
         db.session.commit()
-
-        flash(f"Booking request sent! Your reference is {booking.reference}. We'll confirm shortly.", "success")
-        return redirect(url_for("dashboard.my_bookings"))
-
-    return render_template("booking/new.html", service=service, form_data={})
+        
+        flash(f"Booking confirmed! Your reference is {booking.reference}. We'll send you a confirmation email shortly.", "success")
+        return redirect(url_for("dashboard.bookings"))
+    
+    # GET request - set default date to tomorrow
+    from datetime import timedelta
+    tomorrow = date.today() + timedelta(days=1)
+    form_data = {
+        'preferred_date': tomorrow.strftime("%Y-%m-%d"),
+        'preferred_time': "10:00"
+    }
+    
+    return render_template("booking/new.html", service=service, form_data=form_data)

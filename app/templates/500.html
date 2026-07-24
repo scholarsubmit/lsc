@@ -1,9 +1,12 @@
+<!-- app/templates/500.html -->
 {% extends "base.html" %}
-{% block title %}Something went wrong — {{ company_name }}{% endblock %}
+{% block title %}Server error — {{ company_name }}{% endblock %}
+
 {% block content %}
-<section class="container empty-state" style="padding-top:100px;">
-  <h1 style="font-size:2rem;">Something went wrong</h1>
-  <p class="muted">Our team has been notified. Please try again in a moment.</p>
-  <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to home</a>
+<section class="container" style="text-align: center; padding: 80px 20px;">
+  <h1 style="font-size: 4rem; margin: 0; color: #ef4444;">500</h1>
+  <h2 style="font-size: 1.5rem; margin: 8px 0;">Something went wrong</h2>
+  <p class="muted" style="margin: 8px 0 24px;">We're having some trouble on our end. Please try again later.</p>
+  <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
 </section>
 {% endblock %}

@@ -1,73 +1,747 @@
+<!-- app/templates/admin/service_form.html -->
 {% extends "admin/_layout.html" %}
-{% block title %}{{ 'Edit service' if service else 'Add service' }} — {{ company_name }}{% endblock %}
+
+{% block title %}{{ 'Edit' if service else 'Add' }} Service{% endblock %}
+
 {% block admin_content %}
-<h1 style="font-size:1.4rem;">{{ 'Edit: ' + service.name if service else 'Add a new service or product' }}</h1>
-<p class="muted">This appears immediately in the public catalog once saved{{ ' and marked active' if not service }}.</p>
+<style>
+  /* ── Animation Keyframes ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    100% { transform: scale(1.05); opacity: 0; }
+  }
 
-<form method="post" enctype="multipart/form-data" class="card admin-panel" style="max-width:680px;">
-  <div class="form-row">
-    <div class="form-group">
-      <label for="name">Service name</label>
-      <input type="text" id="name" name="name" required value="{{ service.name if service else form_data.get('name', '') }}">
+  /* ── Form Container ── */
+  .admin-form-container {
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  /* ── Card Enhancements ── */
+  .admin-form-container .card {
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    background: var(--bg-card, #fff);
+  }
+  .admin-form-container .card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    border-color: rgba(139, 92, 246, 0.15);
+  }
+  .admin-form-container .card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-color, #0f172a);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .admin-form-container .card-title .title-icon {
+    color: #8b5cf6;
+  }
+
+  /* ── Form Controls ── */
+  .form-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-color, #334155);
+    margin-bottom: 4px;
+  }
+  .form-label .required {
+    color: #ef4444;
+    margin-left: 2px;
+  }
+
+  .form-control, .form-select {
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.9375rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--bg-input, rgba(255,255,255,0.7));
+    color: var(--text-color, #0f172a);
+    width: 100%;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    outline: none;
+  }
+  .form-control::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .form-check {
+    padding-left: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .form-check-input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: #8b5cf6;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .form-check-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .form-check .text-muted {
+    font-size: 0.78rem;
+    font-weight: 400;
+    display: block;
+    color: #94a3b8;
+  }
+
+  /* ── Image Upload Area ── */
+  .image-upload-area {
+    border: 2px dashed var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: var(--bg-elevated, #f8fafc);
+    position: relative;
+  }
+  .image-upload-area:hover {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.04);
+  }
+  .image-upload-area.dragover {
+    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.08);
+    transform: scale(1.01);
+  }
+  .image-upload-area .upload-icon {
+    font-size: 2.5rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+  .image-upload-area .upload-text {
+    font-weight: 600;
+    color: var(--text-color, #0f172a);
+  }
+  .image-upload-area .upload-subtext {
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+
+  .image-preview-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .image-preview-wrapper img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+  .image-preview-wrapper .remove-image {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .image-preview-wrapper .remove-image:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+  }
+
+  /* ── Submit Button ── */
+  .btn-submit {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  .btn-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  }
+  .btn-submit:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .btn-submit:disabled {
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .btn-submit .btn-text {
+    position: relative;
+    z-index: 1;
+  }
+  .btn-submit .spinner {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 22px;
+    height: 22px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    z-index: 2;
+  }
+  .btn-submit.loading .btn-text { opacity: 0; }
+  .btn-submit.loading .spinner { display: block; }
+
+  /* ── Toggle Switches ── */
+  .toggle-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg-elevated, #f8fafc);
+    border-radius: 10px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    transition: all 0.3s ease;
+  }
+  .toggle-item:hover {
+    border-color: #8b5cf6;
+  }
+  .toggle-item .form-check-input {
+    width: 36px;
+    height: 20px;
+    margin: 0;
+    border-radius: 10px;
+    background-color: #cbd5e1;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .toggle-item .form-check-input:checked {
+    background-color: #8b5cf6;
+  }
+  .toggle-item .form-check-input::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+  .toggle-item .form-check-input:checked::before {
+    transform: translateX(16px);
+  }
+  .toggle-item .toggle-label {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-color, #334155);
+  }
+  .toggle-item .toggle-label small {
+    font-weight: 400;
+    color: #94a3b8;
+    font-size: 0.75rem;
+  }
+
+  /* ── Helper Text ── */
+  .helper-text {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .helper-text .icon {
+    font-size: 0.9rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .admin-form-container .row {
+      flex-direction: column;
+    }
+    .admin-form-container .col-md-4,
+    .admin-form-container .col-md-8 {
+      width: 100%;
+      padding: 0;
+    }
+    .admin-form-container .col-md-4 {
+      order: -1;
+      margin-bottom: 20px;
+    }
+    .image-upload-area {
+      padding: 16px;
+    }
+  }
+
+  /* ── Dark mode support ── */
+  @media (prefers-color-scheme: dark) {
+    .admin-form-container .card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+    }
+    .admin-form-container .card:hover {
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    .form-control, .form-select {
+      background: rgba(15, 23, 42, 0.5);
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #8b5cf6;
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .form-check-label { color: #cbd5e1; }
+    .toggle-item {
+      background: rgba(15, 23, 42, 0.3);
+      border-color: #334155;
+    }
+    .image-upload-area {
+      background: rgba(15, 23, 42, 0.3);
+      border-color: #334155;
+    }
+    .image-upload-area:hover {
+      border-color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.08);
+    }
+  }
+</style>
+
+<div class="admin-form-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-color, #0f172a); margin: 0; display: flex; align-items: center; gap: 10px;">
+      <span style="background: linear-gradient(135deg, #8b5cf6, #6366f1); padding: 6px 10px; border-radius: 10px; color: white; font-size: 1rem;">
+        <i class="fas {{ 'fa-edit' if service else 'fa-plus' }}" aria-hidden="true"></i>
+      </span>
+      {{ 'Edit' if service else 'Add New' }} Service
+    </h2>
+    <a href="{{ url_for('admin.services') }}" class="btn btn-outline-secondary" style="border-radius: 10px; font-weight: 600; padding: 8px 16px; transition: all 0.2s ease;">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Back
+    </a>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" class="admin-form" id="serviceForm" data-loading="true">
+    <div class="row" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+      <!-- Left Column: Main Form -->
+      <div>
+        <!-- Basic Info -->
+        <div class="card mb-4">
+          <div class="card-body" style="padding: 24px;">
+            <h5 class="card-title">
+              <i class="fas fa-info-circle title-icon" aria-hidden="true"></i>
+              Basic Information
+            </h5>
+            
+            <div class="mb-3">
+              <label for="category_id" class="form-label">Category <span class="required">*</span></label>
+              <select name="category_id" id="category_id" class="form-select" required>
+                <option value="">Select category...</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" 
+                    {% if service and service.category_id == category.id %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="name" class="form-label">Service Name <span class="required">*</span></label>
+              <input type="text" name="name" id="name" class="form-control" 
+                     value="{{ service.name if service else form_data.get('name', '') }}" 
+                     placeholder="e.g. Premium Business Cards" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="short_description" class="form-label">Short Description</label>
+              <input type="text" name="short_description" id="short_description" class="form-control"
+                     value="{{ service.short_description if service else form_data.get('short_description', '') }}"
+                     placeholder="Brief description shown on cards">
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Full Description</label>
+              <textarea name="description" id="description" rows="4" class="form-control" 
+                        placeholder="Detailed description with all relevant information...">{{ service.description if service else form_data.get('description', '') }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing & Settings -->
+        <div class="card mb-4">
+          <div class="card-body" style="padding: 24px;">
+            <h5 class="card-title">
+              <i class="fas fa-tag title-icon" aria-hidden="true"></i>
+              Pricing & Settings
+            </h5>
+            
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="mb-3">
+                <label for="price" class="form-label">Price ({{ currency }}) <span class="required">*</span></label>
+                <input type="number" step="0.01" name="price" id="price" class="form-control"
+                       value="{{ service.price if service else form_data.get('price', '0') }}" 
+                       placeholder="0.00" required>
+              </div>
+              <div class="mb-3">
+                <label for="unit" class="form-label">Unit</label>
+                <input type="text" name="unit" id="unit" class="form-control"
+                       value="{{ service.unit if service else form_data.get('unit', 'item') }}"
+                       placeholder="item, session, pack, project">
+                <div class="helper-text">
+                  <span class="icon">💡</span> How you price this service
+                </div>
+              </div>
+            </div>
+
+            <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="mb-3">
+                <label for="estimated_delivery_days" class="form-label">Estimated Delivery</label>
+                <input type="number" name="estimated_delivery_days" id="estimated_delivery_days" 
+                       class="form-control" 
+                       value="{{ service.estimated_delivery_days if service else form_data.get('estimated_delivery_days', '3') }}" 
+                       min="0" placeholder="3">
+                <div class="helper-text">
+                  <span class="icon">📦</span> Business days
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="express_price_multiplier" class="form-label">Express Multiplier</label>
+                <input type="number" step="0.1" name="express_price_multiplier" id="express_price_multiplier" 
+                       class="form-control" 
+                       value="{{ service.express_price_multiplier if service else form_data.get('express_price_multiplier', '1.5') }}" 
+                       min="1" placeholder="1.5">
+                <div class="helper-text">
+                  <span class="icon">⚡</span> 1.5 = 50% extra
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggle Switches -->
+            <div class="mb-3">
+              <label class="form-label">Service Type</label>
+              <div class="toggle-group">
+                <div class="toggle-item">
+                  <input type="checkbox" name="is_bookable" id="is_bookable" class="form-check-input"
+                         {% if service and service.is_bookable %}checked{% endif %}>
+                  <label for="is_bookable" class="toggle-label">
+                    📅 Bookable
+                    <small>Requires scheduling</small>
+                  </label>
+                </div>
+                <div class="toggle-item">
+                  <input type="checkbox" name="is_purchasable" id="is_purchasable" class="form-check-input"
+                         {% if service and service.is_purchasable %}checked{% endif %}>
+                  <label for="is_purchasable" class="toggle-label">
+                    🛒 Purchasable
+                    <small>Add to cart</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Visibility</label>
+              <div class="toggle-group">
+                <div class="toggle-item">
+                  <input type="checkbox" name="is_featured" id="is_featured" class="form-check-input"
+                         {% if service and service.is_featured %}checked{% endif %}>
+                  <label for="is_featured" class="toggle-label">
+                    ⭐ Featured
+                    <small>Show on homepage</small>
+                  </label>
+                </div>
+                <div class="toggle-item">
+                  <input type="checkbox" name="has_express_option" id="has_express_option" class="form-check-input"
+                         {% if service and service.has_express_option %}checked{% endif %}>
+                  <label for="has_express_option" class="toggle-label">
+                    🚀 Express
+                    <small>Rush delivery option</small>
+                  </label>
+                </div>
+                <div class="toggle-item">
+                  <input type="checkbox" name="is_active" id="is_active" class="form-check-input"
+                         {% if not service or service.is_active %}checked{% endif %}>
+                  <label for="is_active" class="toggle-label">
+                    👁️ Active
+                    <small>Visible to customers</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Image Upload -->
+      <div>
+        <div class="card">
+          <div class="card-body" style="padding: 24px;">
+            <h5 class="card-title">
+              <i class="fas fa-image title-icon" aria-hidden="true"></i>
+              Service Image
+            </h5>
+            
+            <!-- Current Image Preview -->
+            {% if service and service.image and service.image != 'img/placeholder-service.jpg' %}
+            <div class="image-preview-wrapper" id="currentImageWrapper">
+              <img src="{{ url_for('static', filename=service.image) }}" 
+                   alt="{{ service.name }}" 
+                   id="currentImage">
+              <button type="button" class="remove-image" id="removeImageBtn" title="Remove image">
+                <i class="fas fa-times" aria-hidden="true"></i>
+              </button>
+              <small class="text-muted d-block text-center" style="margin-top: 4px;">Current image</small>
+            </div>
+            {% else %}
+            <div class="image-upload-area" id="uploadArea">
+              <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+              </div>
+              <div class="upload-text">Drop an image here or click to browse</div>
+              <div class="upload-subtext">PNG, JPG, WEBP up to 2MB</div>
+            </div>
+            {% endif %}
+
+            <!-- Upload Field (hidden, triggered by upload area) -->
+            <div class="mb-3" style="display: none;">
+              <label for="image" class="form-label">Upload New Image</label>
+              <input type="file" name="image" id="image" class="form-control" accept="image/*">
+            </div>
+
+            <!-- Image Preview (JavaScript) -->
+            <div id="image-preview-container" style="display: none;" class="mt-3">
+              <div class="image-preview-wrapper">
+                <img id="image-preview" src="#" alt="Preview">
+                <button type="button" class="remove-image" id="clearPreviewBtn" title="Remove preview">
+                  <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+              </div>
+              <small class="text-muted d-block text-center">Preview — click Save to apply</small>
+            </div>
+
+            <div class="helper-text" style="margin-top: 12px;">
+              <span class="icon">🖼️</span> Square images work best (400x400px min)
+            </div>
+
+            <!-- Submit Button with Loading -->
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <span class="btn-text">
+                <i class="fas {{ 'fa-save' if service else 'fa-plus' }}" aria-hidden="true"></i>
+                {{ 'Update' if service else 'Create' }} Service
+              </span>
+              <span class="spinner"></span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="category_id">Category</label>
-      <select id="category_id" name="category_id" required>
-        {% for c in categories %}
-        <option value="{{ c.id }}" {{ 'selected' if service and service.category_id == c.id }}>{{ c.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
+  </form>
+</div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label for="price">Price ({{ currency }})</label>
-      <input type="number" step="0.01" min="0" id="price" name="price" required value="{{ service.price if service else form_data.get('price', '') }}">
-    </div>
-    <div class="form-group">
-      <label for="unit">Unit</label>
-      <input type="text" id="unit" name="unit" placeholder="item, pack, session, project, event" value="{{ service.unit if service else form_data.get('unit', 'item') }}">
-    </div>
-  </div>
+<script>
+(function() {
+  'use strict';
 
-  <div class="form-group">
-    <label for="short_description">Short description</label>
-    <input type="text" id="short_description" name="short_description" placeholder="One line shown on catalog cards" value="{{ service.short_description if service else form_data.get('short_description', '') }}">
-  </div>
+  // ── DOM Elements ──
+  const form = document.getElementById('serviceForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const imageInput = document.getElementById('image');
+  const previewContainer = document.getElementById('image-preview-container');
+  const previewImg = document.getElementById('image-preview');
+  const clearPreviewBtn = document.getElementById('clearPreviewBtn');
+  const uploadArea = document.getElementById('uploadArea');
+  const currentImageWrapper = document.getElementById('currentImageWrapper');
+  const removeImageBtn = document.getElementById('removeImageBtn');
 
-  <div class="form-group">
-    <label for="description">Full description</label>
-    <textarea id="description" name="description" placeholder="Shown on the service detail page">{{ service.description if service else form_data.get('description', '') }}</textarea>
-  </div>
+  // ── Image Upload Area Click ──
+  if (uploadArea) {
+    uploadArea.addEventListener('click', function() {
+      imageInput.click();
+    });
 
-  <div class="form-group">
-    <label for="image">Product / service photo</label>
-    {% if service and service.image %}
-    <img src="{{ url_for('static', filename=service.image) }}" alt="" style="width:100px;height:100px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
-    {% endif %}
-    <input type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp,image/gif">
-    <p class="helper-text">JPG, PNG, GIF or WEBP. Leave blank to keep the current photo.</p>
-  </div>
+    // Drag and drop support
+    uploadArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        imageInput.files = e.dataTransfer.files;
+        handleImagePreview(e.dataTransfer.files[0]);
+      }
+    });
+  }
 
-  <div class="form-group" style="display:flex;flex-wrap:wrap;gap:20px;">
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_active" {{ 'checked' if not service or service.is_active }}> Active (visible to customers)
-    </label>
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_purchasable" {{ 'checked' if not service or service.is_purchasable }}> Purchasable (add to cart)
-    </label>
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_bookable" {{ 'checked' if service and service.is_bookable }}> Bookable (needs a scheduled session)
-    </label>
-    <label class="checkbox-row" style="font-weight:500;">
-      <input type="checkbox" name="is_featured" {{ 'checked' if service and service.is_featured }}> Featured on homepage
-    </label>
-  </div>
+  // ── Image Preview ──
+  function handleImagePreview(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      previewImg.src = event.target.result;
+      previewContainer.style.display = 'block';
+      if (uploadArea) uploadArea.style.display = 'none';
+      if (currentImageWrapper) currentImageWrapper.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
 
-  <div style="display:flex;gap:12px;margin-top:8px;">
-    <button type="submit" class="btn btn-primary">{{ 'Save changes' if service else 'Add service' }}</button>
-    <a href="{{ url_for('admin.services') }}" class="btn btn-ghost">Cancel</a>
-  </div>
-</form>
+  if (imageInput) {
+    imageInput.addEventListener('change', function(e) {
+      if (this.files && this.files[0]) {
+        handleImagePreview(this.files[0]);
+      }
+    });
+  }
+
+  // ── Clear Preview ──
+  if (clearPreviewBtn) {
+    clearPreviewBtn.addEventListener('click', function() {
+      previewContainer.style.display = 'none';
+      imageInput.value = '';
+      if (uploadArea) uploadArea.style.display = 'block';
+      if (currentImageWrapper) currentImageWrapper.style.display = 'block';
+    });
+  }
+
+  // ── Remove Current Image ──
+  if (removeImageBtn) {
+    removeImageBtn.addEventListener('click', function() {
+      if (confirm('Remove this image? The placeholder will be used.')) {
+        if (currentImageWrapper) currentImageWrapper.style.display = 'none';
+        // Add hidden input to tell server to remove image
+        const removeInput = document.createElement('input');
+        removeInput.type = 'hidden';
+        removeInput.name = 'remove_image';
+        removeInput.value = '1';
+        form.appendChild(removeInput);
+      }
+    });
+  }
+
+  // ── Form Submit with Loading ──
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      // Basic validation
+      const name = document.getElementById('name');
+      const category = document.getElementById('category_id');
+      const price = document.getElementById('price');
+
+      if (!name.value.trim() || !category.value || !price.value || parseFloat(price.value) < 0) {
+        if (!name.value.trim()) {
+          name.style.borderColor = '#ef4444';
+          name.focus();
+          setTimeout(() => name.style.borderColor = '', 3000);
+        }
+        if (!category.value) {
+          category.style.borderColor = '#ef4444';
+          setTimeout(() => category.style.borderColor = '', 3000);
+        }
+        if (!price.value || parseFloat(price.value) < 0) {
+          price.style.borderColor = '#ef4444';
+          setTimeout(() => price.style.borderColor = '', 3000);
+        }
+        e.preventDefault();
+        return;
+      }
+
+      // Show loading state
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+    });
+  }
+
+  // ── Reset border on input ──
+  document.querySelectorAll('.form-control, .form-select').forEach(input => {
+    input.addEventListener('input', function() {
+      this.style.borderColor = '';
+    });
+    input.addEventListener('change', function() {
+      this.style.borderColor = '';
+    });
+  });
+
+  // ── Toggle switch visual feedback ──
+  document.querySelectorAll('.form-check-input').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      // Visual feedback for toggle clicks
+      const item = this.closest('.toggle-item');
+      if (item) {
+        item.style.transition = 'all 0.2s ease';
+        item.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+          item.style.transform = 'scale(1)';
+        }, 150);
+      }
+    });
+  });
+
+})();
+</script>
 {% endblock %}

@@ -1,112 +1,672 @@
+<!-- app/templates/catalog/detail.html -->
 {% extends "base.html" %}
 {% block title %}{{ service.name }} — {{ company_name }}{% endblock %}
-{% block content %}
-<section class="container" style="padding-top:40px;">
-  <p class="muted" style="font-size:0.85rem;">
-    <a href="{{ url_for('catalog.list_services') }}">Services</a> /
-    <a href="{{ url_for('catalog.list_services', category=service.category.slug) }}">{{ service.category.name }}</a> /
-    {{ service.name }}
-  </p>
 
-  <div class="hero-grid" style="align-items:flex-start;">
-    <div class="hero-visual reg-marks" style="padding:0;overflow:hidden;">
-      <div class="thumb" style="aspect-ratio:4/3;">
+{% block content %}
+<section class="container" style="padding-top: 40px">
+  <!-- Breadcrumbs -->
+  <nav aria-label="Breadcrumb">
+    <p class="muted" style="font-size: 0.85rem">
+      <a href="{{ url_for('catalog.list_services') }}">Services</a> /
+      <a href="{{ url_for('catalog.list_services', category=service.category.slug) }}">{{ service.category.name }}</a> /
+      {{ service.name }}
+    </p>
+  </nav>
+
+  <!-- Main Service Details -->
+  <div class="hero-grid" style="align-items: flex-start; gap: 40px">
+    <div class="hero-visual reg-marks" style="padding: 0; overflow: hidden; border-radius: var(--radius)">
+      <div class="thumb" style="aspect-ratio: 4/3; position: relative; background: var(--bg-muted)">
         {% if service.image and 'placeholder' not in service.image %}
-        <img src="{{ url_for('static', filename=service.image) }}" alt="{{ service.name }}" style="width:100%;height:100%;object-fit:cover;">
+        <img src="{{ url_for('static', filename=service.image) }}" alt="{{ service.name }}" style="width: 100%; height: 100%; object-fit: cover">
         {% else %}
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+        </div>
         {% endif %}
+
+        <!-- Badges on image -->
+        <div style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 2;">
+          {% if service.is_featured %}
+          <span class="badge-pill badge-featured">⭐ Featured</span>
+          {% endif %}
+          {% if service.is_bookable %}
+          <span class="badge-pill badge-bookable">📅 Bookable</span>
+          {% endif %}
+          {% if service.has_express_option %}
+          <span class="badge-pill badge-express">⚡ Express</span>
+          {% endif %}
+          {% if service.is_on_sale and service.discount_percentage > 0 %}
+          <span class="badge-pill badge-sale">🔥 {{ service.discount_percentage }}% OFF</span>
+          {% endif %}
+        </div>
       </div>
     </div>
 
     <div>
       <span class="tag">{{ service.category.name }}</span>
-      <h1 style="margin-top:10px;">{{ service.name }}</h1>
-      {% if service.reviews %}
-      <p class="rating">★ {{ service.average_rating }} ({{ service.reviews|length }} review{{ 's' if service.reviews|length != 1 }})</p>
-      {% endif %}
-      <p class="muted">{{ service.description or service.short_description }}</p>
-      <p class="price" style="font-size:1.4rem;">{{ currency }}{{ "%.2f"|format(service.price) }} <small class="muted" style="font-family:var(--font-body);">/ {{ service.unit }}</small></p>
+      <h1 style="margin-top: 10px; font-size: 2rem">{{ service.name }}</h1>
 
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
-        {% if service.is_purchasable %}
-        <form class="add-to-cart-form" action="{{ url_for('cart.add_to_cart', slug=service.slug) }}" method="post" style="display:flex;gap:10px;align-items:center;">
-          <div class="qty-stepper" style="display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
-            <button type="button" data-delta="-1" class="btn-sm" style="border:none;background:var(--bg-elevated);padding:9px 12px;cursor:pointer;">−</button>
-            <input type="number" name="quantity" value="1" min="1" style="width:52px;text-align:center;border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);border-radius:0;">
-            <button type="button" data-delta="1" class="btn-sm" style="border:none;background:var(--bg-elevated);padding:9px 12px;cursor:pointer;">+</button>
+      {% if reviews %}
+      <div class="rating-row" style="margin: 8px 0">
+        <span style="color: #f59e0b">★</span>
+        <span style="font-weight: 600">{{ service.average_rating }}</span>
+        <span class="muted">({{ reviews|length }} review{{ 's' if reviews|length != 1 }})</span>
+      </div>
+      {% endif %}
+
+      <p class="muted" style="margin: 16px 0; line-height: 1.7">
+        {{ service.description or service.short_description }}
+      </p>
+
+      <!-- Delivery Estimate -->
+      <div class="delivery-info" style="margin: 16px 0; padding: 14px 18px; background: var(--bg-elevated); border-radius: var(--radius-sm); border-left: 4px solid #8b5cf6;">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+          <span style="font-weight: 600">
+            <i class="fas fa-clock" aria-hidden="true" style="margin-right: 6px"></i>
+            {% if service.estimated_delivery_days == 0 %}
+            <span style="color: #10b981">✓ Ready Immediately</span>
+            {% elif service.estimated_delivery_days == 1 %}
+            <span style="color: #10b981">⚡ Ready in 1 Business Day</span>
+            {% else %}
+            Ready in {{ service.estimated_delivery_days }} Business Days
+            {% endif %}
+          </span>
+          {% if service.has_express_option %}
+          <span class="badge-pill badge-express" style="font-size: 0.75rem; background: #10b981; color: white; padding: 4px 14px;">
+            Express: {{ currency }}{{ "%.2f"|format(service.express_price) }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Price Display -->
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <p class="price" style="font-size: 1.8rem; font-weight: 700; color: var(--primary); margin: 0;">
+          {{ currency }}{{ "%.2f"|format(service.price) }}
+          <small class="muted" style="font-family: var(--font-body); font-weight: 400; font-size: 1rem;">/ {{ service.unit }}</small>
+        </p>
+        {% if service.is_on_sale and service.compare_at_price and service.compare_at_price > service.price %}
+        <p class="muted" style="font-size: 1.1rem; text-decoration: line-through; margin: 0;">
+          {{ currency }}{{ "%.2f"|format(service.compare_at_price) }}
+        </p>
+        <span style="background: #ef4444; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+          SAVE {{ service.discount_percentage }}%
+        </span>
+        {% endif %}
+      </div>
+
+      <!-- Stock Status -->
+      {% if service.track_inventory %}
+      <div style="margin: 12px 0; font-size: 0.85rem;">
+        {% if service.is_in_stock %}
+        <span style="color: #10b981;">
+          <i class="fas fa-check-circle" aria-hidden="true"></i> In Stock
+          {% if service.stock_quantity <= service.low_stock_threshold %}
+          <span style="color: #f59e0b;">(Only {{ service.stock_quantity }} left)</span>
+          {% endif %}
+        </span>
+        {% else %}
+        <span style="color: #ef4444;">
+          <i class="fas fa-times-circle" aria-hidden="true"></i> Out of Stock
+        </span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px">
+        {% if service.is_purchasable and service.is_in_stock %}
+        <form class="add-to-cart-form" action="{{ url_for('cart.add_to_cart', slug=service.slug) }}" method="post" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div class="qty-stepper" style="display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden;">
+            <button type="button" data-delta="-1" class="btn-sm" style="border: none; background: var(--bg-elevated); padding: 9px 14px; cursor: pointer; font-size: 1.2rem;">−</button>
+            <input type="number" name="quantity" value="1" min="1" {% if service.track_inventory %}max="{{ service.stock_quantity }}"{% endif %} style="width: 56px; text-align: center; border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); border-radius: 0; padding: 8px 0;">
+            <button type="button" data-delta="1" class="btn-sm" style="border: none; background: var(--bg-elevated); padding: 9px 14px; cursor: pointer; font-size: 1.2rem;">+</button>
           </div>
-          <button type="submit" class="btn btn-primary">Add to cart</button>
+          <button type="submit" class="btn btn-primary btn-submit-loading btn-add-cart" style="padding: 10px 24px; position: relative;" data-slug="{{ service.slug }}">
+            <span class="btn-normal">
+              <i class="fas fa-cart-plus" aria-hidden="true"></i> Add to Cart
+            </span>
+            <span class="btn-loading-state" style="display: none;">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width: 18px; height: 18px; border-width: 2px;"></span>
+              Adding...
+            </span>
+            <span class="btn-added-state" style="display: none;">
+              <i class="fas fa-check" aria-hidden="true"></i> Added!
+            </span>
+          </button>
         </form>
+        {% elif service.is_purchasable and not service.is_in_stock %}
+        <button class="btn btn-secondary" disabled style="padding: 10px 24px; opacity: 0.6; cursor: not-allowed;">
+          <i class="fas fa-times" aria-hidden="true"></i> Out of Stock
+        </button>
         {% endif %}
 
         {% if service.is_bookable %}
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('booking.new_booking', slug=service.slug) }}" class="btn btn-outline">Book a session</a>
+        <a href="{{ url_for('booking.new_booking', slug=service.slug) }}" class="btn" style="background: #8b5cf6; border-color: #8b5cf6; color: white; padding: 10px 24px;">
+          <i class="fas fa-calendar-plus" aria-hidden="true"></i> Book a Session
+        </a>
         {% else %}
-        <a href="{{ url_for('auth.login', next=url_for('booking.new_booking', slug=service.slug)) }}" class="btn btn-outline">Log in to book</a>
+        <a href="{{ url_for('auth.login', next=url_for('booking.new_booking', slug=service.slug)) }}" class="btn btn-outline" style="padding: 10px 24px;">
+          Log in to Book
+        </a>
         {% endif %}
         {% endif %}
+      </div>
+
+      <!-- Share/Action Buttons -->
+      <div style="margin-top: 20px; display: flex; gap: 8px; flex-wrap: wrap">
+        <button onclick="window.print()" class="btn btn-sm btn-outline-secondary" style="font-size: 0.8rem; padding: 4px 12px;">
+          <i class="fas fa-print" aria-hidden="true"></i> Print
+        </button>
+        <button onclick="shareService()" class="btn btn-sm btn-outline-secondary" style="font-size: 0.8rem; padding: 4px 12px;">
+          <i class="fas fa-share-alt" aria-hidden="true"></i> Share
+        </button>
+        <button onclick="saveService()" class="btn btn-sm btn-outline-secondary" style="font-size: 0.8rem; padding: 4px 12px;">
+          <i class="fas fa-heart" aria-hidden="true"></i> <span id="saveText">Save</span>
+        </button>
       </div>
     </div>
   </div>
 
-  {% if related %}
-  <div class="section-head" style="margin-top:56px;">
-    <h2 style="font-size:1.3rem;">You might also need</h2>
-  </div>
-  <div class="grid grid-4">
-    {% for s in related %}
-    <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
-      <div class="thumb">
-        {% if s.image and 'placeholder' not in s.image %}
-        <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy">
-        {% else %}
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-        {% endif %}
+  <!-- ============================================ -->
+  <!-- RECOMMENDATIONS SECTION -->
+  <!-- ============================================ -->
+
+  {% if recommendations or similar_price %}
+  <div class="recommendations-section" style="margin-top: 64px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+    <div class="section-head" style="margin-bottom: 24px">
+      <h2 style="font-size: 1.5rem; display: flex; align-items: center; gap: 10px">
+        <span>🎯 You Might Also Like</span>
+        <span class="muted" style="font-size: 0.9rem; font-weight: 400">Recommended for you</span>
+      </h2>
+      <p class="muted">Customers who viewed this also explored these services</p>
+    </div>
+
+    <!-- Same Category Recommendations -->
+    {% if recommendations %}
+    <div style="margin-bottom: 16px">
+      <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px">
+        <i class="fas fa-tag" aria-hidden="true" style="margin-right: 6px"></i>
+        Similar Services
+      </h4>
+      <div class="grid grid-4" style="gap: 16px">
+        {% for rec in recommendations[:4] %}
+        <a href="{{ url_for('catalog.detail', slug=rec.slug) }}" class="card service-card recommendation-card" style="text-decoration: none; color: inherit; overflow: hidden; transition: all 0.2s ease;">
+          <div class="thumb" style="position: relative; overflow: hidden; background: var(--bg-muted);">
+            {% if rec.image and 'placeholder' not in rec.image %}
+            <img src="{{ url_for('static', filename=rec.image) }}" alt="{{ rec.name }}" loading="lazy" style="width: 100%; height: 140px; object-fit: cover; transition: transform 0.3s ease;">
+            {% else %}
+            <div style="display: flex; align-items: center; justify-content: center; height: 140px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+            </div>
+            {% endif %}
+            {% if rec.is_featured %}
+            <span style="position: absolute; top: 6px; right: 6px; font-size: 0.6rem; background: rgba(245, 158, 11, 0.9); color: white; padding: 2px 10px; border-radius: 12px;">⭐</span>
+            {% endif %}
+            {% if rec.is_bookable %}
+            <span style="position: absolute; bottom: 6px; left: 6px; font-size: 0.55rem; background: rgba(139, 92, 246, 0.9); color: white; padding: 2px 8px; border-radius: 10px;">📅 Bookable</span>
+            {% endif %}
+          </div>
+          <div class="body" style="padding: 12px 14px">
+            <h3 style="font-size: 0.9rem; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {{ rec.name }}
+            </h3>
+            <p class="muted" style="font-size: 0.75rem; margin: 0 0 8px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ rec.short_description or '' }}
+            </p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="price" style="font-size: 0.9rem; font-weight: 600; color: var(--primary);">
+                {{ currency }}{{ "%.2f"|format(rec.price) }}
+                <small class="muted" style="font-weight: 400; font-size: 0.7rem">/ {{ rec.unit }}</small>
+              </span>
+              <span style="font-size: 0.7rem; color: var(--text-muted)">
+                {% if rec.reviews %} ★ {{ rec.average_rating }} {% endif %}
+              </span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
       </div>
-      <div class="body">
-        <h3>{{ s.name }}</h3>
-        <span class="price">{{ currency }}{{ "%.2f"|format(s.price) }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Similar Price Recommendations -->
+    {% if similar_price %}
+    <div style="margin-top: 24px">
+      <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px">
+        <i class="fas fa-coins" aria-hidden="true" style="margin-right: 6px"></i>
+        Similar Price Range
+      </h4>
+      <div class="grid grid-4" style="gap: 16px">
+        {% for s in similar_price[:3] %}
+        <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card recommendation-card" style="text-decoration: none; color: inherit; overflow: hidden; transition: all 0.2s ease; border-color: var(--border-color);">
+          <div class="thumb" style="position: relative; overflow: hidden; background: var(--bg-muted);">
+            {% if s.image and 'placeholder' not in s.image %}
+            <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy" style="width: 100%; height: 120px; object-fit: cover; transition: transform 0.3s ease;">
+            {% else %}
+            <div style="display: flex; align-items: center; justify-content: center; height: 120px;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+              </svg>
+            </div>
+            {% endif %}
+            <span style="position: absolute; top: 6px; right: 6px; font-size: 0.55rem; background: rgba(16, 185, 129, 0.9); color: white; padding: 2px 8px; border-radius: 10px;">
+              ~{{ currency }}{{ "%.0f"|format(s.price) }}
+            </span>
+          </div>
+          <div class="body" style="padding: 10px 12px">
+            <h3 style="font-size: 0.85rem; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {{ s.name }}
+            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="price" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">
+                {{ currency }}{{ "%.2f"|format(s.price) }}
+              </span>
+              <span style="font-size: 0.7rem; color: var(--text-muted)">
+                {% if s.reviews %} ★ {{ s.average_rating }} {% endif %}
+              </span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
       </div>
-    </a>
-    {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Add to Cart for Recommendations -->
+    <div style="margin-top: 16px; text-align: center">
+      <a href="{{ url_for('catalog.list_services') }}" class="btn btn-outline" style="font-size: 0.9rem">
+        <i class="fas fa-th-list" aria-hidden="true"></i> Browse All Services
+      </a>
+    </div>
   </div>
   {% endif %}
 
-  <div class="section-head" style="margin-top:56px;">
-    <h2 style="font-size:1.3rem;">Reviews</h2>
+  <!-- REVIEWS SECTION -->
+  <div class="section-head" style="margin-top: 56px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+    <h2 style="font-size: 1.3rem">Customer Reviews</h2>
+    <p class="muted">{{ reviews|length }} review{{ 's' if reviews|length != 1 }}</p>
   </div>
 
-  {% for r in service.reviews %}
-  <div class="card" style="padding:18px;margin-bottom:12px;">
-    <p class="rating">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</p>
-    <p style="margin:6px 0;">{{ r.comment }}</p>
-    <p class="muted" style="font-size:0.82rem;">— {{ r.author.full_name }}</p>
-  </div>
+  {% if reviews %}
+    {% for r in reviews %}
+    <div class="card" style="padding: 18px 20px; margin-bottom: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+        <div>
+          <p class="rating" style="margin: 0; font-size: 1.1rem; color: #f59e0b">
+            {{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}
+          </p>
+          <p style="margin: 8px 0 4px 0">{{ r.comment }}</p>
+          <p class="muted" style="font-size: 0.8rem; margin: 0;">
+            — {{ r.author.full_name }}
+            {% if r.is_verified %}
+            <span style="color: #10b981; font-size: 0.7rem;">✓ Verified Purchase</span>
+            {% endif %}
+          </p>
+        </div>
+        <p class="muted" style="font-size: 0.7rem; white-space: nowrap; margin-left: 12px; margin-top: 4px;">
+          {{ r.created_at.strftime('%b %d, %Y') }}
+        </p>
+      </div>
+    </div>
+    {% endfor %}
   {% else %}
-  <p class="muted">No reviews yet — be the first to share your experience.</p>
-  {% endfor %}
+  <div class="empty-state" style="text-align: center; padding: 40px 20px; background: var(--bg-elevated); border-radius: var(--radius);">
+    <p class="muted" style="margin: 0;">No reviews yet — be the first to share your experience.</p>
+  </div>
+  {% endif %}
 
+  <!-- REVIEW FORM -->
   {% if current_user.is_authenticated %}
-  <form method="post" action="{{ url_for('catalog.add_review', slug=service.slug) }}" class="form-card" style="margin-left:0;max-width:520px;">
-    <h4>Leave a review</h4>
-    <div class="form-group">
-      <label for="rating">Rating</label>
-      <select name="rating" id="rating">
-        <option value="5">★★★★★</option>
-        <option value="4">★★★★☆</option>
-        <option value="3">★★★☆☆</option>
-        <option value="2">★★☆☆☆</option>
-        <option value="1">★☆☆☆☆</option>
+  <form method="post" action="{{ url_for('catalog.add_review', slug=service.slug) }}" class="form-card" style="margin-left: 0; max-width: 520px; margin-top: 24px;" data-loading="true">
+    <h4 style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+      <i class="fas fa-pen" aria-hidden="true"></i> Leave a Review
+    </h4>
+    <div class="form-group" style="margin-bottom: 14px;">
+      <label for="rating" style="display: block; margin-bottom: 4px; font-weight: 500;">Rating</label>
+      <select name="rating" id="rating" class="form-select" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <option value="5">★★★★★ (Excellent)</option>
+        <option value="4">★★★★☆ (Good)</option>
+        <option value="3">★★★☆☆ (Average)</option>
+        <option value="2">★★☆☆☆ (Below Average)</option>
+        <option value="1">★☆☆☆☆ (Poor)</option>
       </select>
     </div>
-    <div class="form-group">
-      <label for="comment">Comment</label>
-      <textarea name="comment" id="comment" placeholder="How was your experience?"></textarea>
+    <div class="form-group" style="margin-bottom: 14px;">
+      <label for="comment" style="display: block; margin-bottom: 4px; font-weight: 500;">Comment</label>
+      <textarea name="comment" id="comment" placeholder="How was your experience? What did you like?" rows="3" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); resize: vertical;"></textarea>
     </div>
-    <button type="submit" class="btn btn-primary btn-block">Submit review</button>
+    <button type="submit" class="btn btn-primary btn-block btn-submit-loading" style="width: 100%; padding: 10px;">
+      <span class="btn-normal"><i class="fas fa-paper-plane" aria-hidden="true"></i> Submit Review</span>
+      <span class="btn-loading-state" style="display: none;">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width: 18px; height: 18px; border-width: 2px;"></span>
+        Submitting...
+      </span>
+    </button>
   </form>
+  {% else %}
+  <div style="margin-top: 24px; padding: 16px 20px; background: var(--bg-elevated); border-radius: var(--radius-sm); text-align: center;">
+    <p class="muted" style="margin: 0;">
+      <a href="{{ url_for('auth.login', next=url_for('catalog.detail', slug=service.slug)) }}" style="font-weight: 600;">Log in</a>
+      to leave a review.
+    </p>
+  </div>
   {% endif %}
 </section>
+
+<!-- CSS for all styles -->
+<style>
+  /* Badge styles */
+  .badge-pill {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: var(--bg-card, #fff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  .badge-featured {
+    background: #f59e0b;
+    color: white;
+  }
+
+  .badge-bookable {
+    background: #8b5cf6;
+    color: white;
+  }
+
+  .badge-express {
+    background: #10b981;
+    color: white;
+  }
+
+  .badge-sale {
+    background: #ef4444;
+    color: white;
+    animation: pulse-sale 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-sale {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  /* Service card hover effects */
+  .recommendation-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  }
+
+  .recommendation-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
+  .recommendation-card:hover .thumb img {
+    transform: scale(1.05);
+  }
+
+  .recommendation-card .thumb img {
+    transition: transform 0.3s ease;
+  }
+
+  /* Rating stars */
+  .rating {
+    color: #f59e0b;
+    font-weight: 500;
+    letter-spacing: 2px;
+  }
+
+  /* Responsive grid */
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  @media (max-width: 992px) {
+    .grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero-grid {
+      grid-template-columns: 1fr !important;
+      gap: 24px !important;
+    }
+
+    .hero-grid .hero-visual {
+      order: -1;
+    }
+
+    .hero-grid .thumb {
+      aspect-ratio: 16/9 !important;
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .grid-4 {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .recommendation-card .thumb img {
+      height: 100px !important;
+    }
+
+    .recommendation-card .body h3 {
+      font-size: 0.8rem !important;
+    }
+
+    .price {
+      font-size: 1.2rem !important;
+    }
+  }
+
+  /* Empty state */
+  .empty-state {
+    background: var(--bg-elevated);
+    border-radius: var(--radius);
+  }
+
+  /* Delivery info */
+  .delivery-info {
+    border-left: 4px solid #8b5cf6 !important;
+  }
+
+  /* Form styling */
+  .form-select,
+  .form-control {
+    background: var(--bg-input);
+    color: var(--text-color);
+  }
+
+  /* Quantity stepper */
+  .qty-stepper input::-webkit-inner-spin-button,
+  .qty-stepper input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .qty-stepper input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Animation for recommendations */
+  .recommendations-section {
+    animation: fadeInUp 0.6s ease;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Button loading state */
+  .btn-add-cart .spinner-border {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .btn-add-cart .btn-normal,
+  .btn-add-cart .btn-loading-state,
+  .btn-add-cart .btn-added-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+</style>
+
+<!-- JavaScript -->
+<script>
+  // ── Share functionality ──
+  function shareService() {
+    if (navigator.share) {
+      navigator.share({
+        title: '{{ service.name }}',
+        text: 'Check out {{ service.name }} at {{ company_name }}',
+        url: window.location.href
+      }).catch(() => {});
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Link copied to clipboard!');
+      }).catch(() => {
+        prompt('Copy this link:', window.location.href);
+      });
+    }
+  }
+
+  // ── Save/Bookmark functionality ──
+  function saveService() {
+    const saved = JSON.parse(localStorage.getItem('savedServices') || '[]');
+    const serviceId = {{ service.id }};
+    const saveText = document.getElementById('saveText');
+
+    if (saved.includes(serviceId)) {
+      const index = saved.indexOf(serviceId);
+      saved.splice(index, 1);
+      localStorage.setItem('savedServices', JSON.stringify(saved));
+      saveText.textContent = 'Save';
+      showToast('Removed from saved services', 'info');
+    } else {
+      saved.push(serviceId);
+      localStorage.setItem('savedServices', JSON.stringify(saved));
+      saveText.textContent = 'Saved ❤️';
+      showToast('Added to saved services!', 'success');
+    }
+  }
+
+  // ── Toast Notification ──
+  function showToast(message, type = 'success') {
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.innerHTML = `
+      <span>${type === 'success' ? '✅' : 'ℹ️'}</span>
+      <span>${message}</span>
+      <button onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 1.2rem;">×</button>
+    `;
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      background: ${type === 'success' ? '#10b981' : '#6366f1'};
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 200px;
+      max-width: 400px;
+      animation: slideUp 0.3s ease forwards;
+      font-family: system-ui, -apple-system, sans-serif;
+    `;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }
+    }, 4000);
+  }
+
+  // ── Quantity stepper ──
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.qty-stepper').forEach(function(stepper) {
+      const input = stepper.querySelector('input[type="number"]');
+      const minusBtn = stepper.querySelector('[data-delta="-1"]');
+      const plusBtn = stepper.querySelector('[data-delta="1"]');
+
+      if (minusBtn) {
+        minusBtn.addEventListener('click', function() {
+          let val = parseInt(input.value) || 1;
+          if (val > parseInt(input.min || 1)) {
+            input.value = val - 1;
+            input.dispatchEvent(new Event('change'));
+          }
+        });
+      }
+
+      if (plusBtn) {
+        plusBtn.addEventListener('click', function() {
+          let val = parseInt(input.value) || 1;
+          const max = parseInt(input.max) || Infinity;
+          if (val < max) {
+            input.value = val + 1;
+            input.dispatchEvent(new Event('change'));
+          }
+        });
+      }
+    });
+
+    // ── Check if service is already saved ──
+    const saved = JSON.parse(localStorage.getItem('savedServices') || '[]');
+    if (saved.includes({{ service.id }})) {
+      const saveText = document.getElementById('saveText');
+      if (saveText) saveText.textContent = 'Saved ❤️';
+    }
+  });
+
+  // ── Add slideUp animation for toast ──
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
 {% endblock %}

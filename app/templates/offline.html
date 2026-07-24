@@ -1,9 +1,12 @@
+<!-- app/templates/offline.html -->
 {% extends "base.html" %}
 {% block title %}You're offline — {{ company_name }}{% endblock %}
+
 {% block content %}
-<section class="container empty-state" style="padding-top:100px;">
-  <h1 style="font-size:1.6rem;">You're offline</h1>
-  <p class="muted">It looks like there's no internet connection right now. Once you're back online, this page will refresh automatically.</p>
-  <button class="btn btn-primary" onclick="location.reload()">Try again</button>
+<section class="container" style="text-align: center; padding: 80px 20px;">
+  <h1 style="font-size: 3rem; margin: 0;">📡</h1>
+  <h2 style="font-size: 1.5rem; margin: 8px 0;">You're Offline</h2>
+  <p class="muted" style="margin: 8px 0 24px;">Please check your internet connection and try again.</p>
+  <button onclick="location.reload()" class="btn btn-primary">Retry</button>
 </section>
 {% endblock %}

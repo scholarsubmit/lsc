@@ -1,3 +1,4 @@
+<!-- app/templates/index.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -125,7 +126,12 @@
     {% for s in featured %}
     <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card featured-item reveal" data-cat-item="{{ s.category.slug }}">
       <div class="thumb">
+        <!-- FIXED: Display actual image if exists, otherwise show placeholder -->
+        {% if s.image and 'placeholder' not in s.image %}
+        <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+        {% else %}
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        {% endif %}
         {% if s.is_bookable %}<span class="badge-pill">Bookable</span>{% endif %}
       </div>
       <div class="body">

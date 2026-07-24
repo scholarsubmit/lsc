@@ -1,3 +1,4 @@
+<!-- app/templates/catalog/list.html -->
 {% extends "base.html" %}
 {% block title %}Services — {{ company_name }}{% endblock %}
 {% block content %}
@@ -25,31 +26,76 @@
   {% if services %}
   <div class="grid grid-3 reveal-stagger" style="margin-top:28px;">
     {% for s in services %}
-    <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card">
-      <div class="thumb">
-        {% if s.image and 'placeholder' not in s.image %}
-        <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy">
-        {% else %}
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-        {% endif %}
-        {% if s.is_bookable %}<span class="badge-pill">Bookable</span>{% endif %}
-      </div>
-      <div class="body">
-        <span class="tag">{{ s.category.name }}</span>
-        <h3>{{ s.name }}</h3>
-        <p class="muted" style="font-size:0.88rem;">{{ s.short_description }}</p>
-        {% if s.reviews %}
-        <div class="rating-row">
-          <span class="stars" aria-hidden="true">★</span>
-          <span>{{ s.average_rating }}</span>
-          <span class="muted">({{ s.reviews|length }})</span>
+    <div class="card service-card">
+      <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card-link-wrapper">
+        <div class="thumb">
+          {% if s.image and 'placeholder' not in s.image %}
+          <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy">
+          {% else %}
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          {% endif %}
+          <div class="card-badges">
+            {% if s.is_bookable %}<span class="badge-pill badge-bookable">📅 Bookable</span>{% endif %}
+            {% if s.is_featured %}<span class="badge-pill badge-featured">⭐ Featured</span>{% endif %}
+            {% if s.has_express_option %}<span class="badge-pill badge-express">⚡ Express</span>{% endif %}
+          </div>
         </div>
-        {% endif %}
-        <div class="meta-row">
-          <span class="price">{{ currency }}{{ "%.2f"|format(s.price) }} <small class="muted">/ {{ s.unit }}</small></span>
+        <div class="body">
+          <span class="tag">{{ s.category.name }}</span>
+          <h3>{{ s.name }}</h3>
+          <p class="muted" style="font-size:0.88rem;">{{ s.short_description }}</p>
+          
+          <!-- Delivery Estimate -->
+          <div class="delivery-info" style="font-size:0.8rem; margin: 8px 0;">
+            <span class="muted">
+              <i class="fas fa-clock" aria-hidden="true"></i> 
+              {% if s.estimated_delivery_days == 0 %}
+              <span style="color: #10b981;">✓ Ready immediately</span>
+              {% elif s.estimated_delivery_days == 1 %}
+              <span style="color: #10b981;">⚡ Ready in 1 day</span>
+              {% elif s.estimated_delivery_days <= 3 %}
+              Ready in {{ s.estimated_delivery_days }} days
+              {% else %}
+              Ready in {{ s.estimated_delivery_days }} days
+              {% endif %}
+            </span>
+          </div>
+          
+          {% if s.reviews %}
+          <div class="rating-row">
+            <span class="stars" aria-hidden="true">★</span>
+            <span>{{ s.average_rating }}</span>
+            <span class="muted">({{ s.reviews|length }})</span>
+          </div>
+          {% endif %}
+          
+          <div class="meta-row" style="margin-top: 12px;">
+            <span class="price">{{ currency }}{{ "%.2f"|format(s.price) }} <small class="muted">/ {{ s.unit }}</small></span>
+          </div>
         </div>
+      </a>
+      
+      <!-- Quick Action Buttons -->
+      <div class="card-actions" style="padding: 8px 16px 16px; display: flex; gap: 8px; border-top: 1px solid var(--border-color);">
+        <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="btn btn-sm btn-outline-primary" style="flex:1; text-align:center; font-size:0.8rem;">
+          <i class="fas fa-info-circle" aria-hidden="true"></i> Details
+        </a>
+        
+        {% if s.is_bookable %}
+        <a href="{{ url_for('booking.new_booking', slug=s.slug) }}" class="btn btn-sm btn-primary" style="flex:1; text-align:center; font-size:0.8rem;">
+          <i class="fas fa-calendar-plus" aria-hidden="true"></i> Book Now
+        </a>
+        {% elif s.is_purchasable %}
+        <!-- FIXED: Changed from cart.add to cart.add_to_cart -->
+        <form method="POST" action="{{ url_for('cart.add_to_cart', slug=s.slug) }}" style="flex:1; margin:0;">
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit" class="btn btn-sm btn-success btn-submit-loading" style="width:100%; font-size:0.8rem;">
+            <i class="fas fa-cart-plus" aria-hidden="true"></i> Add
+          </button>
+        </form>
+        {% endif %}
       </div>
-    </a>
+    </div>
     {% endfor %}
   </div>
   {% else %}
@@ -58,4 +104,139 @@
   </div>
   {% endif %}
 </section>
+
+<!-- CSS additions for the new elements -->
+<style>
+/* Badge styles */
+.card-badges {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.badge-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: var(--bg-card, #fff);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.badge-bookable {
+  background: #8b5cf6;
+  color: white;
+}
+
+.badge-featured {
+  background: #f59e0b;
+  color: white;
+}
+
+.badge-express {
+  background: #10b981;
+  color: white;
+}
+
+/* Card wrapper for proper hover */
+.card-link-wrapper {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.card-link-wrapper:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Service card hover effect */
+.service-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.service-card .thumb {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-muted, #f3f4f6);
+}
+
+.service-card .thumb img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .thumb img {
+  transform: scale(1.03);
+}
+
+.service-card .body {
+  padding: 16px;
+  flex: 1;
+}
+
+.service-card .body h3 {
+  font-size: 1rem;
+  margin: 4px 0 6px;
+  line-height: 1.3;
+}
+
+/* Delivery info styling */
+.delivery-info i {
+  margin-right: 4px;
+  font-size: 0.7rem;
+}
+
+/* Card actions */
+.card-actions .btn {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .card-actions {
+    flex-direction: column;
+  }
+  
+  .card-actions .btn,
+  .card-actions form {
+    width: 100% !important;
+    flex: none !important;
+  }
+  
+  .service-card .thumb img {
+    height: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-badges .badge-pill {
+    font-size: 0.55rem;
+    padding: 1px 8px;
+  }
+  
+  .service-card .thumb img {
+    height: 120px;
+  }
+}
+</style>
 {% endblock %}

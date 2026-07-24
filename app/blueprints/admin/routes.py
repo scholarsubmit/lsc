@@ -81,6 +81,8 @@ def services():
     return render_template("admin/services.html", services=all_services)
 
 
+#Updated the new_service and edit_service functions
+
 @admin_bp.route("/services/new", methods=["GET", "POST"])
 @admin_required
 def new_service():
@@ -93,14 +95,20 @@ def new_service():
         unit = request.form.get("unit", "item").strip()
         short_description = request.form.get("short_description", "").strip()
         description = request.form.get("description", "").strip()
+        
+        # NEW: Get delivery fields
+        estimated_delivery_days = request.form.get("estimated_delivery_days", 3)
+        has_express_option = bool(request.form.get("has_express_option"))
+        express_price_multiplier = request.form.get("express_price_multiplier", 1.5)
 
         error = None
         if not name or not category_id:
             error = "Name and category are required."
         try:
             price = float(price)
+            estimated_delivery_days = int(estimated_delivery_days)
         except ValueError:
-            error = "Price must be a number."
+            error = "Price must be a number and delivery days must be a whole number."
 
         slug = _slugify(name)
         if Service.query.filter_by(slug=slug).first():
@@ -121,6 +129,10 @@ def new_service():
             price=price,
             unit=unit or "item",
             image=image_path,
+            # NEW delivery fields
+            estimated_delivery_days=estimated_delivery_days,
+            has_express_option=has_express_option,
+            express_price_multiplier=float(express_price_multiplier),
             is_bookable=bool(request.form.get("is_bookable")),
             is_purchasable=bool(request.form.get("is_purchasable")),
             is_featured=bool(request.form.get("is_featured")),
@@ -146,6 +158,16 @@ def edit_service(service_id):
         service.short_description = request.form.get("short_description", "").strip()
         service.description = request.form.get("description", "").strip()
         service.unit = request.form.get("unit", service.unit).strip()
+
+        # NEW: Update delivery fields
+        try:
+            service.estimated_delivery_days = int(request.form.get("estimated_delivery_days", service.estimated_delivery_days))
+            service.express_price_multiplier = float(request.form.get("express_price_multiplier", service.express_price_multiplier))
+        except ValueError:
+            flash("Delivery days must be a whole number and multiplier must be a number.", "error")
+            return render_template("admin/service_form.html", categories=categories, service=service, form_data=request.form)
+
+        service.has_express_option = bool(request.form.get("has_express_option"))
 
         try:
             service.price = float(request.form.get("price", service.price))
@@ -201,6 +223,7 @@ def _slugify(text):
         .replace("  ", " ")
         .replace(" ", "-")
     )
+
 
 
 # ---------------------------------------------------------------- Categories

@@ -1,9 +1,13 @@
+<!-- app/templates/403.html -->
 {% extends "base.html" %}
 {% block title %}Access restricted — {{ company_name }}{% endblock %}
+
 {% block content %}
-<section class="container empty-state" style="padding-top:100px;">
-  <h1 style="font-size:2rem;">403</h1>
-  <p class="muted">This area is restricted to admin accounts only.</p>
-  <a href="{{ url_for('main.home') }}" class="btn btn-primary">Back to home</a>
+<section class="container" style="text-align: center; padding: 80px 20px;">
+  <h1 style="font-size: 4rem; margin: 0; color: #ef4444;">403</h1>
+  <h2 style="font-size: 1.5rem; margin: 8px 0;">Access Restricted</h2>
+  <p class="muted" style="margin: 8px 0 24px;">This area is restricted to admin accounts only. Please log in with an admin account.</p>
+  <!-- FIXED: Changed from 'main.home' to 'main.index' -->
+  <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
 </section>
 {% endblock %}
