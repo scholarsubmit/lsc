@@ -1,11 +1,12 @@
-"""Seeds the database with sample service categories and services so the
-storefront isn't empty on first run. Run: python3 seed.py
-"""
+# seed.py
+"""Seeds the database with sample service categories and services."""
+import os
 from app import create_app
 from app.extensions import db
 from app.models import ServiceCategory, Service, User
 
-app = create_app()
+# Ensure we're using the right environment
+app = create_app(os.environ.get("FLASK_ENV", "development"))
 
 CATEGORIES = [
     {
@@ -51,26 +52,33 @@ SERVICES = [
     dict(category="events", name="Wedding Photography & Coverage Package", short="Full-day coverage: photos, video, and prints.", price=650.00, unit="event", bookable=True),
 ]
 
-
 def slugify(text):
     return text.lower().replace("&", "and").replace(",", "").replace("(", "").replace(")", "").replace("  ", " ").replace(" ", "-")
 
-
 def seed():
     with app.app_context():
+        print("Creating tables...")
         db.create_all()
 
+        # Check if data already exists
         if ServiceCategory.query.first():
-            print("Database already has data — skipping seed. Delete instance/lsc.db to reseed.")
+            print("Database already has data — skipping seed.")
             return
 
+        print("Seeding categories...")
         cat_map = {}
         for c in CATEGORIES:
-            cat = ServiceCategory(name=c["name"], slug=c["slug"], icon=c["icon"], description=c["description"])
+            cat = ServiceCategory(
+                name=c["name"], 
+                slug=c["slug"], 
+                icon=c["icon"], 
+                description=c["description"]
+            )
             db.session.add(cat)
             db.session.flush()
             cat_map[c["slug"]] = cat
 
+        print("Seeding services...")
         for s in SERVICES:
             svc = Service(
                 category_id=cat_map[s["category"]].id,
@@ -83,19 +91,24 @@ def seed():
                 is_bookable=s.get("bookable", False),
                 is_purchasable=not s.get("bookable", False) or True,
                 is_featured=s.get("featured", False),
+                estimated_delivery_days=3,
             )
             db.session.add(svc)
 
-        # Demo admin account (change password immediately in production)
+        # Demo admin account
+        print("Creating admin account...")
         if not User.query.filter_by(email="admin@lsc.com").first():
-            admin = User(full_name="Studio Admin", email="admin@lsc.com", is_admin=True)
+            admin = User(
+                full_name="Studio Admin", 
+                email="admin@lsc.com", 
+                is_admin=True
+            )
             admin.set_password("ChangeMe123!")
             db.session.add(admin)
 
         db.session.commit()
-        print(f"Seeded {len(CATEGORIES)} categories and {len(SERVICES)} services.")
-        print("Demo admin login: admin@lsc.com / ChangeMe123!")
-
+        print(f"✅ Seeded {len(CATEGORIES)} categories and {len(SERVICES)} services.")
+        print("✅ Demo admin login: admin@lsc.com / ChangeMe123!")
 
 if __name__ == "__main__":
     seed()
