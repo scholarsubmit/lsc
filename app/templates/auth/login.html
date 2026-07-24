@@ -3,429 +3,365 @@
 {% block title %}Log in — {{ company_name }}{% endblock %}
 
 {% block content %}
-<section class="login-section" style="min-height: calc(100vh - 200px); display: flex; align-items: center; padding: 40px 0;">
-  <div class="container">
-    <div class="login-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1000px; margin: 0 auto; align-items: center;">
-      
-      <!-- Left Side: Branding & Benefits -->
-      <div class="login-branding" style="display: flex; flex-direction: column; padding: 20px;">
-        <div class="brand-icon" style="font-size: 3rem; margin-bottom: 16px;">
-          <span style="background: linear-gradient(135deg, #5B21B6, #8B5CF6); padding: 16px; border-radius: 16px; display: inline-block; color: white;">
-            <i class="fas fa-print" aria-hidden="true"></i>
-          </span>
-        </div>
-        <h2 style="font-size: 2rem; margin-bottom: 8px; line-height: 1.2;">
-          Welcome Back to<br>
-          <span style="background: linear-gradient(135deg, #5B21B6, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            {{ company_name }}
-          </span>
-        </h2>
-        <p class="muted" style="font-size: 1.05rem; margin-bottom: 24px;">
-          Your one-stop shop for printing, branding, photography, and event planning.
-        </p>
-        
-        <div class="feature-list" style="display: flex; flex-direction: column; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-elevated); border-radius: var(--radius-sm);">
-            <span style="color: #8B5CF6; font-size: 1.2rem;">📋</span>
-            <span>View and manage your bookings</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-elevated); border-radius: var(--radius-sm);">
-            <span style="color: #8B5CF6; font-size: 1.2rem;">📦</span>
-            <span>Track your orders in real-time</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-elevated); border-radius: var(--radius-sm);">
-            <span style="color: #8B5CF6; font-size: 1.2rem;">⭐</span>
-            <span>Write reviews and earn loyalty points</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-elevated); border-radius: var(--radius-sm);">
-            <span style="color: #8B5CF6; font-size: 1.2rem;">🚀</span>
-            <span>Access exclusive deals and offers</span>
-          </div>
-        </div>
-        
-        <!-- Trust Badges -->
-        <div style="margin-top: 24px; display: flex; gap: 20px; flex-wrap: wrap;">
-          <span style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted);">
-            <i class="fas fa-shield-alt" style="color: #10b981;" aria-hidden="true"></i> Secure Login
-          </span>
-          <span style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted);">
-            <i class="fas fa-lock" style="color: #10b981;" aria-hidden="true"></i> 256-bit SSL
-          </span>
-          <span style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted);">
-            <i class="fas fa-clock" style="color: #10b981;" aria-hidden="true"></i> 24/7 Support
-          </span>
-        </div>
-      </div>
-      
-      <!-- Right Side: Login Form -->
-      <div class="login-form-wrapper" style="max-width: 420px; width: 100%; margin: 0 auto;">
-        <!-- Decorative header -->
-        <div style="text-align: center; margin-bottom: 24px;">
-          <div style="display: inline-block; background: linear-gradient(135deg, #5B21B6, #8B5CF6); padding: 12px; border-radius: 16px; margin-bottom: 12px;">
-            <i class="fas fa-user-circle" style="font-size: 2rem; color: white;" aria-hidden="true"></i>
-          </div>
-          <h1 style="font-size: 1.75rem; margin: 0;">Welcome Back</h1>
-          <p class="muted" style="margin: 4px 0 0 0;">Log in to access your dashboard</p>
-        </div>
-        
-        <!-- Login Form with loading spinner -->
-        <form method="post" class="form-card" data-loading="true" style="padding: 28px 32px; border-radius: var(--radius); box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
-          {{ form.hidden_tag() if form else '' }}
-          
-          <!-- Flash messages inside form for better UX -->
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              <div style="margin-bottom: 16px;">
-                {% for category, message in messages %}
-                  <div class="alert alert-{{ category }}" style="padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.9rem; {% if category == 'error' %}background: #fef2f2; color: #dc2626; border-left: 3px solid #dc2626;{% elif category == 'success' %}background: #f0fdf4; color: #16a34a; border-left: 3px solid #16a34a;{% else %}background: #fefce8; color: #ca8a04; border-left: 3px solid #ca8a04;{% endif %}">
-                    {{ message }}
-                  </div>
-                {% endfor %}
-              </div>
-            {% endif %}
-          {% endwith %}
-          
-          <!-- Email Field -->
-          <div class="form-group" style="margin-bottom: 18px;">
-            <label for="email" style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.9rem;">
-              <i class="fas fa-envelope" style="margin-right: 6px; color: var(--text-muted);" aria-hidden="true"></i>
-              Email Address
-            </label>
-            <div style="position: relative;">
-              <input 
-                type="email" 
-                id="email" 
-                name="email" 
-                required 
-                autofocus
-                placeholder="you@example.com"
-                class="form-control"
-                style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-input); color: var(--text-color); transition: border-color 0.2s ease;"
-              >
-              <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;">
-                <i class="fas fa-check-circle" style="display: none; color: #10b981;" id="emailCheck" aria-hidden="true"></i>
-              </span>
-            </div>
-          </div>
-          
-          <!-- Password Field -->
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label for="password" style="display: block; margin-bottom: 4px; font-weight: 500; font-size: 0.9rem;">
-              <i class="fas fa-lock" style="margin-right: 6px; color: var(--text-muted);" aria-hidden="true"></i>
-              Password
-            </label>
-            <div class="password-field" style="position: relative;">
-              <input 
-                type="password" 
-                id="password" 
-                name="password" 
-                required
-                placeholder="Enter your password"
-                class="form-control"
-                style="width: 100%; padding: 10px 44px 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-input); color: var(--text-color); transition: border-color 0.2s ease;"
-              >
-              <button 
-                type="button" 
-                class="password-toggle" 
-                aria-label="Toggle password visibility"
-                data-target="password"
-                style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 6px; border-radius: 50%; transition: background 0.2s ease;"
-                onmouseover="this.style.background='var(--bg-elevated)'" 
-                onmouseout="this.style.background='transparent'"
-              >
-                <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: block;">
-                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-                  <path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a18.5 18.5 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 7 11 7a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                  <path d="M1 1l22 22"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Remember Me & Forgot Password -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px;">
-            <div class="form-group checkbox-row" style="margin: 0; display: flex; align-items: center; gap: 6px;">
-              <input 
-                type="checkbox" 
-                id="remember" 
-                name="remember"
-                style="width: 16px; height: 16px; accent-color: #5B21B6;"
-              >
-              <label for="remember" style="margin: 0; font-weight: 500; font-size: 0.9rem; cursor: pointer;">
-                Remember me
-              </label>
-            </div>
-            <!-- FIXED: Simple placeholder link -->
-            <a href="#" 
-               onclick="alert('Password reset feature coming soon! Please contact support at {{ company_email }}.')" 
-               style="font-size: 0.85rem; color: #8B5CF6; text-decoration: none; transition: color 0.2s;"
-               onmouseover="this.style.color='#5B21B6'" 
-               onmouseout="this.style.color='#8B5CF6'">
-              Forgot password?
-            </a>
-          </div>
-          
-          <!-- Submit Button with Loading State -->
-          <button 
-            type="submit" 
-            class="btn btn-primary btn-block btn-submit-loading" 
-            style="width: 100%; padding: 12px; font-size: 1rem; font-weight: 600; border-radius: var(--radius-sm); background: linear-gradient(135deg, #5B21B6, #8B5CF6); border: none; color: white; transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative;"
-            onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(91,33,182,0.3)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
-          >
-            <span class="btn-normal">
-              <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Log In
-            </span>
-            <span class="btn-loading-state" style="display: none;">
-              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width: 18px; height: 18px; border-width: 2px;"></span>
-              Logging in...
-            </span>
-          </button>
-          
-          <!-- Social Login Divider -->
-          <div style="display: flex; align-items: center; margin: 20px 0; gap: 12px;">
-            <hr style="flex: 1; border: none; border-top: 1px solid var(--border);">
-            <span style="font-size: 0.8rem; color: var(--text-muted);">OR CONTINUE WITH</span>
-            <hr style="flex: 1; border: none; border-top: 1px solid var(--border);">
-          </div>
-          
-          <!-- Social Login Buttons (Placeholders - implement OAuth later) -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-            <button 
-              type="button" 
-              class="btn btn-outline" 
-              style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px; font-size: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: transparent; color: var(--text-color); transition: all 0.2s ease;"
-              onclick="alert('Google login coming soon!')"
-              onmouseover="this.style.background='#f3f4f6'"
-              onmouseout="this.style.background='transparent'"
-            >
-              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-              Google
-            </button>
-            <button 
-              type="button" 
-              class="btn btn-outline" 
-              style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px; font-size: 0.85rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: transparent; color: var(--text-color); transition: all 0.2s ease;"
-              onclick="alert('Facebook login coming soon!')"
-              onmouseover="this.style.background='#f3f4f6'"
-              onmouseout="this.style.background='transparent'"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              Facebook
-            </button>
-          </div>
-          
-          <!-- Register Link -->
-          <p class="text-center muted" style="margin: 0; font-size: 0.9rem;">
-            Don't have an account? 
-            <a href="{{ url_for('auth.register') }}" style="color: #8B5CF6; font-weight: 600; text-decoration: none; transition: color 0.2s;" 
-               onmouseover="this.style.color='#5B21B6'" 
-               onmouseout="this.style.color='#8B5CF6'">
-              Create one now
-            </a>
-          </p>
-          
-          <!-- Security Notice -->
-          <div style="margin-top: 16px; padding: 12px 14px; background: var(--bg-elevated); border-radius: var(--radius-sm); display: flex; align-items: center; gap: 8px; border: 1px solid var(--border);">
-            <i class="fas fa-shield-alt" style="color: #10b981; font-size: 0.9rem;" aria-hidden="true"></i>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">
-              Your data is encrypted and secure. We never share your information.
-            </span>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Additional CSS for login page -->
 <style>
-  /* Animated gradient background for login section */
+  /* ── Login Page Styles ── */
   .login-section {
-    position: relative;
-    background: var(--bg-color);
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--bg-color, #f8fafc);
   }
-  
-  .login-section::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -30%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card, white);
+    border-radius: 20px;
+    padding: 40px 36px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    border: 1px solid var(--border-color, #e2e8f0);
+    animation: fadeInUp 0.5s ease both;
   }
-  
-  .login-section::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    left: -20%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(91, 33, 182, 0.05) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-  
-  .login-form-wrapper {
-    position: relative;
-    z-index: 1;
-  }
-  
-  .login-branding {
-    position: relative;
-    z-index: 1;
-  }
-  
-  /* Form card hover effect */
-  .form-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    background: var(--bg-card);
-  }
-  
-  .form-card:hover {
-    box-shadow: 0 8px 32px rgba(91, 33, 182, 0.08) !important;
-  }
-  
-  /* Input focus effects */
-  .form-control:focus {
-    outline: none;
-    border-color: #8B5CF6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-  }
-  
-  /* Checkbox styling */
-  .checkbox-row input[type="checkbox"] {
-    accent-color: #5B21B6;
-    cursor: pointer;
-  }
-  
-  .checkbox-row label {
-    cursor: pointer;
-  }
-  
-  /* Password toggle button hover */
-  .password-toggle:hover {
-    background: var(--bg-elevated) !important;
-  }
-  
-  /* Responsive design */
-  @media (max-width: 768px) {
-    .login-grid {
-      grid-template-columns: 1fr !important;
-      gap: 0 !important;
-    }
-    
-    .login-branding {
-      display: none !important;
-    }
-    
-    .login-form-wrapper {
-      max-width: 100% !important;
-      padding: 0 16px;
-    }
-    
-    .form-card {
-      padding: 20px !important;
-    }
-    
-    .login-section {
-      padding: 20px 0 !important;
-    }
-    
-    .login-section::before,
-    .login-section::after {
-      display: none;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .form-card {
-      padding: 16px !important;
-    }
-    
-    .login-social-grid {
-      grid-template-columns: 1fr !important;
-    }
-  }
-  
-  /* Loading spinner animation in button */
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
-  
-  .spinner-border {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-    vertical-align: text-bottom;
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 28px;
   }
-  
-  /* Button loading state */
-  .btn-submit-loading:disabled {
-    pointer-events: none;
-    opacity: 0.8;
+  .login-header .icon-wrap {
+    display: inline-block;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    padding: 14px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+  }
+  .login-header .icon-wrap svg {
+    width: 28px;
+    height: 28px;
+    color: white;
+  }
+  .login-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color, #0f172a);
+    margin: 0 0 4px;
+  }
+  .login-header p {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color, #334155);
+    margin-bottom: 4px;
+  }
+  .password-field {
+    position: relative;
+  }
+  .password-field input {
+    width: 100%;
+    padding: 10px 44px 10px 14px;
+    font-size: 0.95rem;
+    background: var(--bg-input, white);
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+    color: var(--text-color, #0f172a);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+  .password-field input:focus {
+    border-color: #8b5cf6;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+  }
+  .password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+  .password-toggle:hover {
+    background: var(--bg-elevated, #f1f5f9);
+    color: var(--text-color, #0f172a);
+  }
+  .password-toggle .icon-eye-off {
+    display: none;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #8b5cf6;
+    cursor: pointer;
+  }
+  .checkbox-row label {
+    font-size: 0.85rem;
+    color: #64748b;
+    cursor: pointer;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+  }
+  .btn-submit:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+  }
+  .btn-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-submit .spinner {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  .btn-submit.loading .btn-text { opacity: 0; }
+  .btn-submit.loading .spinner { display: block; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .divider hr {
+    flex: 1;
+    border: none;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+  }
+  .divider span {
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+
+  .social-login {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-color, #0f172a);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .social-btn:hover {
+    background: var(--bg-elevated, #f1f5f9);
+  }
+
+  .register-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+  .register-link a {
+    color: #8b5cf6;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .register-link a:hover {
+    text-decoration: underline;
+  }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+    .login-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(255,255,255,0.06);
+    }
+    .password-field input {
+      background: rgba(15, 23, 42, 0.5);
+      border-color: #334155;
+      color: #f1f5f9;
+    }
+    .password-field input:focus {
+      border-color: #8b5cf6;
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .social-btn {
+      border-color: #334155;
+      color: #cbd5e1;
+    }
+    .social-btn:hover {
+      background: rgba(255,255,255,0.04);
+    }
+    .login-header h1 { color: #f8fafc; }
+  }
+
+  @media (max-width: 480px) {
+    .login-card { padding: 24px 18px; }
+    .social-login { grid-template-columns: 1fr; }
   }
 </style>
 
-<!-- JavaScript for password toggle and form validation -->
+<section class="login-section">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <h1>Welcome Back</h1>
+      <p>Log in to manage your bookings and orders</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="margin-bottom: 16px;">
+          {% for category, message in messages %}
+            <div style="padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; {% if category == 'error' %}background: #fef2f2; color: #dc2626; border-left: 4px solid #dc2626;{% elif category == 'success' %}background: #f0fdf4; color: #16a34a; border-left: 4px solid #16a34a;{% else %}background: #fefce8; color: #ca8a04; border-left: 4px solid #ca8a04;{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}" data-loading="true">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required autofocus placeholder="you@example.com" style="width:100%; padding:10px 14px; font-size:0.95rem; background:var(--bg-input, white); border:2px solid var(--border-color, #e2e8f0); border-radius:10px; color:var(--text-color, #0f172a); box-sizing:border-box;">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-field">
+          <input type="password" id="password" name="password" required placeholder="Enter your password">
+          <button type="button" class="password-toggle" aria-label="Show password" data-target="password">
+            <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="icon-eye-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a18.5 18.5 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 7 11 7a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:8px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="remember" name="remember">
+          <label for="remember">Remember me</label>
+        </div>
+        <a href="#" onclick="alert('Password reset coming soon! Please contact {{ company_email }}.')" style="font-size:0.85rem; color:#8b5cf6; text-decoration:none;">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span class="btn-text">Log In</span>
+        <span class="spinner"></span>
+      </button>
+
+      <div class="divider">
+        <hr><span>OR CONTINUE WITH</span><hr>
+      </div>
+
+      <div class="social-login">
+        <button type="button" class="social-btn" onclick="alert('Google login coming soon!')">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Google
+        </button>
+        <button type="button" class="social-btn" onclick="alert('Facebook login coming soon!')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          Facebook
+        </button>
+      </div>
+
+      <p class="register-link">
+        Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a>
+      </p>
+    </form>
+  </div>
+</section>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Password toggle functionality
-  document.querySelectorAll('.password-toggle').forEach(function(button) {
-    button.addEventListener('click', function() {
-      const targetId = this.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      if (!input) return;
-      
-      const iconEye = this.querySelector('.icon-eye');
-      const iconEyeOff = this.querySelector('.icon-eye-off');
-      
-      if (input.type === 'password') {
-        input.type = 'text';
-        iconEye.style.display = 'none';
-        iconEyeOff.style.display = 'block';
+  // ── Password Toggle ──
+  document.querySelectorAll('.password-toggle').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = document.getElementById(this.dataset.target);
+      if (!target) return;
+      const eye = this.querySelector('.icon-eye');
+      const eyeOff = this.querySelector('.icon-eye-off');
+      if (target.type === 'password') {
+        target.type = 'text';
+        if (eye) eye.style.display = 'none';
+        if (eyeOff) eyeOff.style.display = 'block';
         this.setAttribute('aria-label', 'Hide password');
       } else {
-        input.type = 'password';
-        iconEye.style.display = 'block';
-        iconEyeOff.style.display = 'none';
+        target.type = 'password';
+        if (eye) eye.style.display = 'block';
+        if (eyeOff) eyeOff.style.display = 'none';
         this.setAttribute('aria-label', 'Show password');
       }
     });
   });
+
+  // ── Loading State ──
+  const form = document.querySelector('form[data-loading="true"]');
+  const submitBtn = document.getElementById('submitBtn');
   
-  // Email validation with visual feedback
-  const emailInput = document.getElementById('email');
-  const emailCheck = document.getElementById('emailCheck');
-  
-  if (emailInput && emailCheck) {
-    emailInput.addEventListener('input', function() {
-      const isValid = this.value.includes('@') && this.value.includes('.');
-      if (isValid && this.value.length > 5) {
-        emailCheck.style.display = 'inline';
-        this.style.borderColor = '#10b981';
-      } else {
-        emailCheck.style.display = 'none';
-        this.style.borderColor = '';
-      }
-    });
-  }
-  
-  // Auto-focus on email field
-  if (emailInput) {
-    emailInput.focus();
-  }
+  form.addEventListener('submit', function() {
+    submitBtn.classList.add('loading');
+    submitBtn.disabled = true;
+  });
 });
 </script>
 {% endblock %}
