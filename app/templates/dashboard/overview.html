@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "dashboard/_layout.html" %}
 {% block title %}Dashboard — {{ company_name }}{% endblock %}
-{% block content %}
+{% block dashboard_content %}
 <style>
   /* ── Base Animation Keyframes ── */
   @keyframes fadeInUp {
@@ -157,7 +157,7 @@
   .welcome-avatar {
     width: 64px; height: 64px;
     background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
     border-radius: 18px;
     display: flex;
     align-items: center;
@@ -182,7 +182,7 @@
   }
   .stat-card {
     background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5); backdrop-filter: blur(16px) saturate(1.5);
     -webkit-backdrop-filter: blur(16px) saturate(1.5);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 18px;
@@ -251,7 +251,7 @@
   /* ── Panel Card ── */
   .panel-card {
     background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
     -webkit-backdrop-filter: blur(20px) saturate(1.5);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 20px;
@@ -429,51 +429,70 @@
   }
 
   /* ── Dark mode support ── */
-  @media (prefers-color-scheme: dark) {
-    .dashboard-page {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #1e293b 65%, #0f172a 100%);
-    }
-    .welcome-card {
-      background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #7c3aed 100%);
+  /* Dark mode — follows the site-wide toggle (data-theme), not OS preference */
+  [data-theme="dark"] .dashboard-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #1e293b 65%, #0f172a 100%);
+  }
+  [data-theme="dark"] .welcome-card {
+    background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #7c3aed 100%);
       box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
-    }
-    .stat-card {
-      background: rgba(30, 41, 59, 0.7);
+  }
+  [data-theme="dark"] .stat-card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
       box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
-    }
-    .stat-card:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    }
-    .stat-value { color: #f8fafc; }
-    .stat-label { color: #64748b; }
-    .panel-card {
-      background: rgba(30, 41, 59, 0.7);
+  }
+  [data-theme="dark"] .stat-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  [data-theme="dark"] .stat-value {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .stat-label {
+    color: #64748b;
+  }
+  [data-theme="dark"] .panel-card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
       box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
-    }
-    .panel-card:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-    }
-    .panel-title { color: #f8fafc; }
-    .panel-link {
-      color: #818cf8;
+  }
+  [data-theme="dark"] .panel-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  [data-theme="dark"] .panel-title {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .panel-link {
+    color: #818cf8;
       background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
-    }
-    .panel-link:hover {
-      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.12));
-    }
-    .list-item { border-bottom-color: #334155; }
-    .list-item:hover { background: rgba(99, 102, 241, 0.05); }
-    .list-item-title { color: #f1f5f9; }
-    .list-item-meta { color: #64748b; }
-    .list-item-meta .ref-code {
-      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+  }
+  [data-theme="dark"] .panel-link:hover {
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.12));
+  }
+  [data-theme="dark"] .list-item {
+    border-bottom-color: #334155;
+  }
+  [data-theme="dark"] .list-item:hover {
+    background: rgba(99, 102, 241, 0.05);
+  }
+  [data-theme="dark"] .list-item-title {
+    color: #f1f5f9;
+  }
+  [data-theme="dark"] .list-item-meta {
+    color: #64748b;
+  }
+  [data-theme="dark"] .list-item-meta .ref-code {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
       color: #818cf8;
-    }
-    .list-item-price { color: #f1f5f9; }
-    .panel-empty svg { color: #475569; }
-    .panel-empty p { color: #64748b; }
+  }
+  [data-theme="dark"] .list-item-price {
+    color: #f1f5f9;
+  }
+  [data-theme="dark"] .panel-empty svg {
+    color: #475569;
+  }
+  [data-theme="dark"] .panel-empty p {
+    color: #64748b;
   }
 </style>
 
@@ -527,7 +546,7 @@
       <div class="stat-icon orange">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
-      <div class="stat-value">{{ bookings | selectattr('status', 'equalto', 'pending') | list | length + orders | selectattr('status', 'equalto', 'pending') | list | length }}</div>
+      <div class="stat-value">{{ bookings | selectattr('status', 'equalto', 'pending') | list | length + orders | selectattr('status', 'equalto', 'awaiting_approval') | list | length }}</div>
       <div class="stat-label">Pending</div>
     </div>
   </div>
@@ -544,7 +563,7 @@
         <a href="{{ url_for('dashboard.my_bookings') }}" class="panel-link">View all</a>
       </div>
 
-      {% for b in bookings %}
+      {% for b in bookings[:5] %}
       <div class="list-item" style="animation-delay: {{ 0.45 + loop.index * 0.06 }}s;">
         <div class="list-item-main">
           <p class="list-item-title">{{ b.service.name }}</p>
@@ -574,7 +593,7 @@
         <a href="{{ url_for('dashboard.my_orders') }}" class="panel-link">View all</a>
       </div>
 
-      {% for o in orders %}
+      {% for o in orders[:5] %}
       <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="list-item" style="animation-delay: {{ 0.55 + loop.index * 0.06 }}s;">
         <div class="list-item-main">
           <p class="list-item-title">{{ o.reference }}</p>
@@ -584,7 +603,7 @@
             <span>{{ o.items | length }} item{{ 's' if o.items | length != 1 else '' }}</span>
           </div>
         </div>
-        <span class="list-item-price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</span>
+        <span class="list-item-price">{{ o.total_amount | money }}</span>
       </a>
       {% else %}
       <div class="panel-empty">

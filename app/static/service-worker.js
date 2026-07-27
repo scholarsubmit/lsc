@@ -57,3 +57,32 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 });
+
+// ── Web Push: new print-job order alerts straight to an admin's device ──
+self.addEventListener("push", (event) => {
+  let data = { title: "Les Starry Corporate", body: "You have a new notification.", url: "/admin/orders" };
+  if (event.data) {
+    try { data = event.data.json(); } catch (e) { data.body = event.data.text(); }
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/static/icons/icon-192.png",
+      badge: "/static/icons/icon-192.png",
+      data: { url: data.url || "/admin/orders" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/admin/orders";
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(url) && "focus" in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

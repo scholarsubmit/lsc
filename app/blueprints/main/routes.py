@@ -53,18 +53,22 @@ def index():
         recent_services = Service.query.filter_by(
             is_active=True
         ).order_by(Service.created_at.desc()).limit(4).all()
+
+        from app.models import Ad
+        active_ads = [a for a in Ad.query.order_by(Ad.display_order.asc()).all() if a.is_currently_live]
         
         return render_template(
             "index.html",
             categories=categories,
             featured=featured,
             recent_services=recent_services,
+            active_ads=active_ads,
             year=datetime.now().year
         )
     except Exception as e:
         logger.error(f"Error loading homepage: {e}")
         flash("Unable to load homepage. Please try again.", "error")
-        return render_template("index.html", categories=[], featured=[], recent_services=[])
+        return render_template("index.html", categories=[], featured=[], recent_services=[], active_ads=[])
 
 
 @main_bp.route("/about")
@@ -141,7 +145,7 @@ def dashboard_redirect():
     """Redirect users to their appropriate dashboard."""
     if current_user.is_admin:
         return redirect(url_for('admin.dashboard'))
-    return redirect(url_for('dashboard.orders'))
+    return redirect(url_for('dashboard.index'))
 
 
 @main_bp.route("/sitemap.xml")
@@ -228,6 +232,49 @@ def server_error(e):
 def forbidden(e):
     """Custom 403 page."""
     return render_template("403.html", year=datetime.now().year), 403
+
+
+@main_bp.route("/set-currency/<code>", methods=["POST"])
+def set_currency(code):
+    """Switch the displayed currency site-wide (conversion happens client-side;
+    stored prices always stay in Naira). Persists to the session and, for
+    logged-in users, to their profile so it follows them across devices."""
+    from app.models import CurrencyRate
+    code = code.upper()
+    currency = CurrencyRate.query.filter_by(code=code, is_active=True).first()
+    if not currency:
+        return {"success": False, "message": "Unknown or inactive currency."}, 400
+
+    session["currency"] = code
+    if current_user.is_authenticated:
+        current_user.preferred_currency = code
+        db.session.commit()
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return {"success": True, "code": code, "symbol": currency.symbol}
+    return redirect(request.referrer or url_for("main.index"))
+
+
+# Context processor for currency switcher (available on every page)
+@main_bp.context_processor
+def inject_currencies():
+    try:
+        from app.models import CurrencyRate
+        active_currencies = CurrencyRate.query.filter_by(is_active=True).order_by(CurrencyRate.code.asc()).all()
+        selected = session.get("currency")
+        if not selected and current_user.is_authenticated:
+            selected = current_user.preferred_currency
+        selected = selected or "NGN"
+        if selected not in {c.code for c in active_currencies}:
+            selected = "NGN"
+        rates_json = {c.code: {"symbol": c.symbol, "rate": c.rate_per_ngn} for c in active_currencies}
+        return {
+            "active_currencies": active_currencies,
+            "selected_currency": selected,
+            "currency_rates_json": rates_json,
+        }
+    except Exception:
+        return {"active_currencies": [], "selected_currency": "NGN", "currency_rates_json": {}}
 
 
 # Context processor for all templates

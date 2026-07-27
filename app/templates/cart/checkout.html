@@ -48,7 +48,7 @@
   /* ── Form Card ── */
   .checkout-form-card {
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
     -webkit-backdrop-filter: blur(20px) saturate(1.5);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 24px;
@@ -292,7 +292,7 @@
   /* ── Order Summary ── */
   .order-summary-card {
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
     -webkit-backdrop-filter: blur(20px) saturate(1.5);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 24px;
@@ -400,61 +400,69 @@
   }
 
   /* ── Dark mode support ── */
-  @media (prefers-color-scheme: dark) {
-    .checkout-section {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);
-    }
-    .checkout-form-card,
-    .order-summary-card {
-      background: rgba(30, 41, 59, 0.7);
+  /* Dark mode — follows the site-wide toggle (data-theme), not OS preference */
+  [data-theme="dark"] .checkout-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);
+  }
+  [data-theme="dark"] .checkout-form-card, [data-theme="dark"] .order-summary-card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
-    }
-    .checkout-form-card h2 { color: #f8fafc; }
-    .checkout-form-card .subtitle { color: #94a3b8; }
-    .form-group label { color: #cbd5e1; }
-    .input-wrapper input,
-    .input-wrapper textarea,
-    .input-wrapper select {
-      background: rgba(15, 23, 42, 0.5);
+  }
+  [data-theme="dark"] .checkout-form-card h2 {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .checkout-form-card .subtitle {
+    color: #94a3b8;
+  }
+  [data-theme="dark"] .form-group label {
+    color: #cbd5e1;
+  }
+  [data-theme="dark"] .input-wrapper input, [data-theme="dark"] .input-wrapper textarea, [data-theme="dark"] .input-wrapper select {
+    background: rgba(15, 23, 42, 0.5);
       border-color: #334155;
       color: #f1f5f9;
-    }
-    .input-wrapper input:focus,
-    .input-wrapper textarea:focus,
-    .input-wrapper select:focus {
-      background: rgba(15, 23, 42, 0.7);
+  }
+  [data-theme="dark"] .input-wrapper input:focus, [data-theme="dark"] .input-wrapper textarea:focus, [data-theme="dark"] .input-wrapper select:focus {
+    background: rgba(15, 23, 42, 0.7);
       border-color: #8b5cf6;
       box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
-    }
-    .order-summary-card h3 {
-      color: #f8fafc;
+  }
+  [data-theme="dark"] .order-summary-card h3 {
+    color: #f8fafc;
       border-bottom-color: #334155;
-    }
-    .order-item {
-      color: #cbd5e1;
+  }
+  [data-theme="dark"] .order-item {
+    color: #cbd5e1;
       border-bottom-color: #334155;
-    }
-    .order-item .item-price { color: #f1f5f9; }
-    .order-total {
-      border-top-color: #334155;
+  }
+  [data-theme="dark"] .order-item .item-price {
+    color: #f1f5f9;
+  }
+  [data-theme="dark"] .order-total {
+    border-top-color: #334155;
       color: #f8fafc;
-    }
-    .order-total .total-amount { color: #a78bfa; }
-    .payment-option {
-      background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .order-total .total-amount {
+    color: #a78bfa;
+  }
+  [data-theme="dark"] .payment-option {
+    background: rgba(15, 23, 42, 0.3);
       border-color: #334155;
       color: #94a3b8;
-    }
-    .payment-option:hover {
-      border-color: #6d28d9;
+  }
+  [data-theme="dark"] .payment-option:hover {
+    border-color: #6d28d9;
       background: rgba(139, 92, 246, 0.08);
-    }
-    .payment-option.selected {
-      border-color: #8b5cf6;
+  }
+  [data-theme="dark"] .payment-option.selected {
+    border-color: #8b5cf6;
       background: rgba(139, 92, 246, 0.12);
-    }
-    .empty-checkout h2 { color: #f8fafc; }
-    .empty-checkout p { color: #94a3b8; }
+  }
+  [data-theme="dark"] .empty-checkout h2 {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .empty-checkout p {
+    color: #94a3b8;
   }
 </style>
 
@@ -568,7 +576,7 @@
           <button type="submit" class="btn-submit btn-submit-loading" id="submitBtn">
             <span class="btn-text">
               <i class="fas fa-check-circle" aria-hidden="true" style="margin-right: 6px;"></i>
-              Place Order — {{ currency }}{{ "%.2f"|format(total) }}
+              Place Order — {{ total | money }}
             </span>
             <span class="spinner"></span>
           </button>
@@ -591,14 +599,14 @@
           {% for item in items %}
           <div class="order-item">
             <span class="item-name">{{ item.service.name }} <span style="color: #94a3b8; font-weight: 400;">× {{ item.quantity }}</span></span>
-            <span class="item-price">{{ currency }}{{ "%.2f"|format(item.subtotal) }}</span>
+            <span class="item-price">{{ item.subtotal | money }}</span>
           </div>
           {% endfor %}
         </div>
 
         <div class="order-total">
           <span>Total</span>
-          <span class="total-amount">{{ currency }}{{ "%.2f"|format(total) }}</span>
+          <span class="total-amount">{{ total | money }}</span>
         </div>
 
         <!-- Quick Stats -->

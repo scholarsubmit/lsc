@@ -369,54 +369,53 @@
   }
 
   /* ── Dark Mode ── */
-  @media (prefers-color-scheme: dark) {
-    .cart-table thead {
-      background: rgba(15, 23, 42, 0.3);
-    }
-    .cart-table thead th {
-      color: #94a3b8;
+  /* Dark mode — follows the site-wide toggle (data-theme), not OS preference */
+  [data-theme="dark"] .cart-table thead {
+    background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .cart-table thead th {
+    color: #94a3b8;
       border-bottom-color: rgba(255,255,255,0.06);
-    }
-    .cart-table tbody tr {
-      border-bottom-color: rgba(255,255,255,0.04);
-    }
-    .cart-table tbody tr:hover {
-      background: rgba(15, 23, 42, 0.3);
-    }
-    .cart-summary {
-      background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .cart-table tbody tr {
+    border-bottom-color: rgba(255,255,255,0.04);
+  }
+  [data-theme="dark"] .cart-table tbody tr:hover {
+    background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .cart-summary {
+    background: rgba(15, 23, 42, 0.3);
       border-color: rgba(255,255,255,0.06);
-    }
-    .cart-summary .summary-item .label {
-      color: #94a3b8;
-    }
-    .cart-summary .summary-item .value {
-      color: #f8fafc;
-    }
-    .qty-input-group {
-      border-color: rgba(255,255,255,0.06);
-    }
-    .qty-input-group .qty-btn {
-      background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .cart-summary .summary-item .label {
+    color: #94a3b8;
+  }
+  [data-theme="dark"] .cart-summary .summary-item .value {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .qty-input-group {
+    border-color: rgba(255,255,255,0.06);
+  }
+  [data-theme="dark"] .qty-input-group .qty-btn {
+    background: rgba(15, 23, 42, 0.3);
       color: #cbd5e1;
-    }
-    .qty-input-group .qty-btn:hover {
-      background: rgba(255,255,255,0.04);
-    }
-    .qty-input-group input[type="number"] {
-      border-color: rgba(255,255,255,0.06);
+  }
+  [data-theme="dark"] .qty-input-group .qty-btn:hover {
+    background: rgba(255,255,255,0.04);
+  }
+  [data-theme="dark"] .qty-input-group input[type="number"] {
+    border-color: rgba(255,255,255,0.06);
       color: #f8fafc;
-    }
-    .btn-continue-shopping {
-      border-color: rgba(255,255,255,0.06);
+  }
+  [data-theme="dark"] .btn-continue-shopping {
+    border-color: rgba(255,255,255,0.06);
       color: #94a3b8;
-    }
-    .btn-continue-shopping:hover {
-      background: rgba(255,255,255,0.04);
-    }
-    .responsive-table {
-      border-color: rgba(255,255,255,0.06);
-    }
+  }
+  [data-theme="dark"] .btn-continue-shopping:hover {
+    background: rgba(255,255,255,0.04);
+  }
+  [data-theme="dark"] .responsive-table {
+    border-color: rgba(255,255,255,0.06);
   }
 </style>
 
@@ -456,7 +455,7 @@
               <span class="item-notes">{{ item.customization_notes }}</span>
               {% endif %}
             </td>
-            <td style="text-align: center;" class="item-price">{{ currency }}{{ "%.2f"|format(item.service.price) }}</td>
+            <td style="text-align: center;" class="item-price">{{ item.service.price | money }}</td>
             <td style="text-align: center;">
               <form class="qty-form" data-item-id="{{ item.id }}" data-action="{{ url_for('cart.update_item', item_id=item.id) }}">
                 <div class="qty-input-group">
@@ -471,7 +470,7 @@
               </form>
             </td>
             <td style="text-align: right; font-weight: 600;" class="item-subtotal" data-item-id="{{ item.id }}">
-              {{ currency }}{{ "%.2f"|format(item.subtotal) }}
+              {{ item.subtotal | money }}
             </td>
             <td style="text-align: center;">
               <button class="btn-remove" data-item-id="{{ item.id }}" data-action="{{ url_for('cart.remove_item', item_id=item.id) }}">
@@ -489,7 +488,7 @@
       <div class="summary-left">
         <div class="summary-item">
           <span class="label">Subtotal:</span>
-          <span class="value" id="cartSubtotal">{{ currency }}{{ "%.2f"|format(total) }}</span>
+          <span class="value" id="cartSubtotal">{{ total | money }}</span>
         </div>
         <div class="summary-item">
           <span class="label">Items:</span>
@@ -497,7 +496,7 @@
         </div>
         <div class="summary-item">
           <span class="label">Total:</span>
-          <span class="value total" id="cartTotal">{{ currency }}{{ "%.2f"|format(total) }}</span>
+          <span class="value total" id="cartTotal">{{ total | money }}</span>
         </div>
       </div>
       <div class="summary-right">

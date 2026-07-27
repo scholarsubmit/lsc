@@ -33,9 +33,21 @@
                 <i class="fas fa-calendar-check" aria-hidden="true"></i>
                 <span>Bookings</span>
             </a>
+            <a href="{{ url_for('admin.currencies') }}" class="admin-nav-item {% if request.endpoint == 'admin.currencies' %}active{% endif %}">
+                <i class="fas fa-coins" aria-hidden="true"></i>
+                <span>Currencies</span>
+            </a>
+            <a href="{{ url_for('admin.ads') }}" class="admin-nav-item {% if request.endpoint == 'admin.ads' %}active{% endif %}">
+                <i class="fas fa-bullhorn" aria-hidden="true"></i>
+                <span>Landing Page Ads</span>
+            </a>
         </nav>
-        
+
         <div class="admin-sidebar-footer">
+            <button type="button" id="admin-theme-toggle" class="admin-nav-item theme-toggle-btn" style="width: 100%; background: none; border: none; cursor: pointer; font: inherit; text-align: left;">
+                <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+                <span>Toggle light / dark</span>
+            </button>
             <a href="{{ url_for('main.index') }}" class="admin-nav-item">
                 <i class="fas fa-arrow-left" aria-hidden="true"></i>
                 <span>Back to Site</span>
@@ -52,6 +64,21 @@
         <div class="admin-content-header">
             <h2>{% block admin_title %}Admin Panel{% endblock %}</h2>
             <div class="admin-user-info">
+                <div class="notification-bell-wrap">
+                    <button type="button" id="notif-bell-btn" class="icon-btn" aria-label="Notifications">
+                        <i class="fas fa-bell" aria-hidden="true"></i>
+                        <span id="notif-bell-count" class="badge cart-badge" style="{% if not admin_unread_notifications %}display:none;{% endif %}">{{ admin_unread_notifications }}</span>
+                    </button>
+                    <div id="notif-bell-dropdown" class="notif-dropdown" style="display:none;">
+                        <div class="notif-dropdown-header">
+                            <span>Notifications</span>
+                            <button type="button" id="notif-mark-all-read">Mark all read</button>
+                        </div>
+                        <div id="notif-dropdown-list" class="notif-dropdown-list">
+                            <p class="notif-empty">Loading…</p>
+                        </div>
+                    </div>
+                </div>
                 <span class="admin-user-name">{{ current_user.full_name }}</span>
                 <span class="admin-user-role">Admin</span>
             </div>
@@ -181,6 +208,91 @@
     align-items: center;
     gap: 12px;
 }
+.notification-bell-wrap {
+    position: relative;
+}
+.notification-bell-wrap .icon-btn {
+    position: relative;
+    background: none;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 10px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color, #0f172a);
+    cursor: pointer;
+}
+.notification-bell-wrap .badge.cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.65rem;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+}
+.notif-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    background: var(--bg-card, white);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    z-index: 200;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.notif-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.notif-dropdown-header button {
+    background: none;
+    border: none;
+    color: #8b5cf6;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.notif-dropdown-list {
+    overflow-y: auto;
+    max-height: 340px;
+}
+.notif-item {
+    display: block;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    text-decoration: none;
+    color: inherit;
+}
+.notif-item:hover { background: var(--bg-elevated, #f8fafc); }
+.notif-item.unread { background: rgba(139, 92, 246, 0.05); }
+.notif-item .notif-title { font-weight: 600; font-size: 0.85rem; margin: 0 0 2px; }
+.notif-item .notif-message { font-size: 0.8rem; color: var(--text-muted, #64748b); margin: 0 0 4px; }
+.notif-item .notif-time { font-size: 0.7rem; color: var(--text-muted, #94a3b8); }
+.notif-empty { padding: 24px 16px; text-align: center; color: var(--text-muted, #64748b); font-size: 0.85rem; }
+[data-theme="dark"] .notif-dropdown { background: #1e293b; border-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .notif-dropdown-header { border-bottom-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .notif-item { border-bottom-color: rgba(255,255,255,0.04); }
+[data-theme="dark"] .notif-item:hover, [data-theme="dark"] .notif-item.unread { background: rgba(255,255,255,0.04); }
+[data-theme="dark"] .notification-bell-wrap .icon-btn { border-color: #334155; color: #f1f5f9; }
 .admin-user-name {
     font-weight: 600;
     font-size: 0.9rem;
@@ -225,4 +337,106 @@
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const bellBtn = document.getElementById('notif-bell-btn');
+  const dropdown = document.getElementById('notif-bell-dropdown');
+  const countBadge = document.getElementById('notif-bell-count');
+  const listEl = document.getElementById('notif-dropdown-list');
+  const markAllBtn = document.getElementById('notif-mark-all-read');
+
+  function renderNotifications(items) {
+    if (!items.length) {
+      listEl.innerHTML = '<p class="notif-empty">No notifications yet.</p>';
+      return;
+    }
+    listEl.innerHTML = items.map(function (n) {
+      return `<a href="${n.link || '#'}" class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+        <p class="notif-title">${n.title}</p>
+        <p class="notif-message">${n.message}</p>
+        <p class="notif-time">${n.created_at}</p>
+      </a>`;
+    }).join('');
+  }
+
+  function refreshNotifications() {
+    fetch('{{ url_for("admin.notifications_feed") }}')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        countBadge.textContent = data.unread_count;
+        countBadge.style.display = data.unread_count > 0 ? 'flex' : 'none';
+        renderNotifications(data.items);
+      })
+      .catch(function () {});
+  }
+
+  if (bellBtn) {
+    bellBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const isOpen = dropdown.style.display === 'block';
+      dropdown.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) refreshNotifications();
+    });
+  }
+  document.addEventListener('click', function (e) {
+    if (dropdown && !dropdown.contains(e.target) && e.target !== bellBtn) {
+      dropdown.style.display = 'none';
+    }
+  });
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      fetch('{{ url_for("admin.mark_all_notifications_read") }}', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      }).then(refreshNotifications);
+    });
+  }
+
+  // Poll for new notifications every 15s — a lightweight, reliable stand-in
+  // for real-time push on every device that has the admin panel open.
+  refreshNotifications();
+  setInterval(refreshNotifications, 15000);
+
+  // ── Web Push: opt-in real OS-level notifications on this device ──
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    navigator.serviceWorker.ready.then(function (registration) {
+      registration.pushManager.getSubscription().then(function (existing) {
+        if (existing) return; // already subscribed on this device
+        fetch('{{ url_for("admin.push_public_key") }}')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.publicKey) return; // Web Push not configured server-side
+            return registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(data.publicKey),
+            });
+          })
+          .then(function (subscription) {
+            if (!subscription) return;
+            return fetch('{{ url_for("admin.push_subscribe") }}', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(subscription),
+            });
+          })
+          .catch(function () {
+            // Push permission denied or unsupported — the in-app bell above
+            // still covers new-order alerts, so this fails silently.
+          });
+      });
+    });
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+});
+</script>
 {% endblock %}

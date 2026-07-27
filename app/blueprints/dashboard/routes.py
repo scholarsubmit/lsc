@@ -1,10 +1,20 @@
 # app/blueprints/dashboard/routes.py
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.models import Order, Booking
 
 dashboard_bp = Blueprint("dashboard", __name__)
+
+
+@dashboard_bp.route("/")
+@login_required
+def index():
+    """Customer dashboard home: quick stats + recent orders/bookings."""
+    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
+    bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
+    return render_template("dashboard/overview.html", orders=orders, bookings=bookings)
 
 
 @dashboard_bp.route("/orders")

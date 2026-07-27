@@ -113,28 +113,38 @@
   }
 
   /* ── Dark Mode ── */
-  @media (prefers-color-scheme: dark) {
-    .stat-card {
-      background: rgba(30, 41, 59, 0.7);
+  /* Dark mode — follows the site-wide toggle (data-theme), not OS preference */
+  [data-theme="dark"] .stat-card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
-    }
-    .stat-card:hover {
-      border-color: rgba(139, 92, 246, 0.2);
-    }
-    .stat-card .stat-value { color: #f8fafc; }
-    .stat-card .stat-label { color: #94a3b8; }
-
-    .recent-card {
-      background: rgba(30, 41, 59, 0.7);
+  }
+  [data-theme="dark"] .stat-card:hover {
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+  [data-theme="dark"] .stat-card .stat-value {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .stat-card .stat-label {
+    color: #94a3b8;
+  }
+  [data-theme="dark"] .recent-card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
-    }
-    .recent-card h4 { color: #f8fafc; }
-    .recent-item {
-      border-bottom-color: rgba(255,255,255,0.04);
-    }
-    .recent-item .item-info .item-name { color: #f1f5f9; }
-    .recent-item .item-info .item-meta { color: #94a3b8; }
-    .empty-recent { color: #94a3b8; }
+  }
+  [data-theme="dark"] .recent-card h4 {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .recent-item {
+    border-bottom-color: rgba(255,255,255,0.04);
+  }
+  [data-theme="dark"] .recent-item .item-info .item-name {
+    color: #f1f5f9;
+  }
+  [data-theme="dark"] .recent-item .item-info .item-meta {
+    color: #94a3b8;
+  }
+  [data-theme="dark"] .empty-recent {
+    color: #94a3b8;
   }
 
   @media (max-width: 768px) {

@@ -1,38 +1,88 @@
 {% extends "admin/_layout.html" %}
 {% block title %}Manage orders — {{ company_name }}{% endblock %}
 {% block admin_content %}
+<style>
+  .order-row.highlight { animation: highlight-pulse 2s ease-in-out 2; }
+  @keyframes highlight-pulse {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(139, 92, 246, 0.12); }
+  }
+  .order-items-toggle { background: none; border: none; color: #8b5cf6; font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 0; }
+  .order-items-panel { display: none; padding: 12px 16px; background: var(--bg-elevated, #f8fafc); border-top: 1px solid var(--border-color, #f1f5f9); }
+  .order-items-panel.open { display: table-row; }
+  .order-item-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.85rem; border-bottom: 1px dashed var(--border-color, #e2e8f0); }
+  .order-item-line:last-child { border-bottom: none; }
+  .btn-download { font-size: 0.75rem; padding: 4px 10px; background: rgba(99,102,241,0.1); color: #6366f1; border-radius: 6px; text-decoration: none; font-weight: 600; }
+  [data-theme="dark"] .order-items-panel { background: rgba(15,23,42,0.3); border-top-color: rgba(255,255,255,0.06); }
+  [data-theme="dark"] .order-item-line { border-bottom-color: rgba(255,255,255,0.06); }
+</style>
+
 <h1 style="font-size:1.4rem;">Orders</h1>
-<p class="muted">Every purchase placed through the storefront.</p>
+<p class="muted">Every print job and order placed through the storefront.</p>
 
 <div class="chip-row">
   <a href="{{ url_for('admin.orders') }}" class="chip {{ 'chip-active' if not status_filter }}">All</a>
-  {% for s in ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'] %}
-  <a href="{{ url_for('admin.orders', status=s) }}" class="chip {{ 'chip-active' if status_filter == s }}">{{ s|title }}</a>
+  {% for s in order_statuses %}
+  <a href="{{ url_for('admin.orders', status=s) }}" class="chip {{ 'chip-active' if status_filter == s }}">{{ s.replace('_', ' ')|title }}</a>
   {% endfor %}
 </div>
 
 <div class="admin-table-wrap card" style="margin-top:20px;">
   <table>
-    <thead><tr><th>Reference</th><th>Customer</th><th>Total</th><th>Date</th><th>Status</th></tr></thead>
+    <thead><tr><th>Reference</th><th>Customer</th><th>Total</th><th>Date</th><th>Items</th><th>Status</th></tr></thead>
     <tbody>
       {% for o in orders %}
-      <tr>
+      <tr class="order-row {{ 'highlight' if highlight == o.id }}">
         <td class="ref-code">{{ o.reference }}</td>
         <td>{{ o.customer.full_name }}<br><span class="muted" style="font-size:0.8rem;">{{ o.customer.email }}</span></td>
         <td class="price">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</td>
         <td>{{ o.created_at.strftime('%d %b %Y') }}</td>
         <td>
-          <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.id) }}" style="display:flex;gap:8px;align-items:center;">
-            <select name="status" onchange="this.form.submit()">
-              {% for s in ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'] %}
-              <option value="{{ s }}" {{ 'selected' if o.status == s }}>{{ s|title }}</option>
-              {% endfor %}
-            </select>
-          </form>
+          <button type="button" class="order-items-toggle" onclick="document.getElementById('items-{{ o.id }}').classList.toggle('open')">
+            {{ o.items|length }} item{{ 's' if o.items|length != 1 }} ▾
+          </button>
+        </td>
+        <td>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.id) }}" style="display:flex;gap:8px;align-items:center;">
+              <select name="status" onchange="this.form.submit()">
+                {% for s in order_statuses %}
+                <option value="{{ s }}" {{ 'selected' if o.status == s }}>{{ s.replace('_', ' ')|title }}</option>
+                {% endfor %}
+              </select>
+            </form>
+            {% if o.status == 'awaiting_approval' %}
+            <form method="post" action="{{ url_for('admin.approve_order', order_id=o.id) }}">
+              <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:0.75rem;">✓ Approve &amp; book</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      <tr id="items-{{ o.id }}" class="order-items-panel">
+        <td colspan="6">
+          {% for item in o.items %}
+          {% set opts = item.options_dict %}
+          <div class="order-item-line">
+            <span>
+              {{ item.service_name }} × {{ item.quantity }}
+              {% if opts.get('size_label') %} — {{ opts.size_label }}{% endif %}
+              — {{ currency }}{{ "%.2f"|format(item.subtotal) }}
+            </span>
+            {% if opts.get('upload_path') %}
+            <a class="btn-download" href="{{ url_for('admin.download_design_file', order_id=o.id, item_id=item.id) }}">
+              ⬇ Download design file
+            </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% if o.order_notes %}
+          <p class="muted" style="font-size:0.8rem; margin: 8px 0 0;"><strong>Notes:</strong> {{ o.order_notes }}</p>
+          {% endif %}
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="5" class="muted" style="text-align:center;padding:32px;">No orders match this filter.</td></tr>
+      <tr><td colspan="6" class="muted" style="text-align:center;padding:32px;">No orders match this filter.</td></tr>
       {% endfor %}
     </tbody>
   </table>

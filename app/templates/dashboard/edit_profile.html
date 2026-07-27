@@ -1,0 +1,40 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}Edit Profile — {{ company_name }}{% endblock %}
+{% block dashboard_content %}
+<style>
+  .profile-card { background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0); border-radius: 16px; padding: 32px; max-width: 560px; }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+  .form-control { width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); background: var(--bg-input, white); color: var(--text-color, #0f172a); box-sizing: border-box; font-size: 0.9rem; }
+  .form-control:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-submit { padding: 12px 28px; font-weight: 600; color: white; background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; border-radius: 8px; cursor: pointer; }
+  [data-theme="dark"] .profile-card { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.06); }
+  [data-theme="dark"] .form-control { background: rgba(15,23,42,0.5); border-color: #334155; color: #f1f5f9; }
+</style>
+
+<div class="profile-card">
+  <h2 style="margin: 0 0 4px;">Edit Profile</h2>
+  <p class="muted" style="margin: 0 0 24px;">Keep your delivery details up to date.</p>
+
+  <form method="post">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input class="form-control" type="text" name="full_name" value="{{ user.full_name }}" required>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input class="form-control" type="email" value="{{ user.email }}" disabled>
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input class="form-control" type="tel" name="phone" value="{{ user.phone or '' }}" placeholder="e.g. 080XXXXXXXX">
+    </div>
+    <div class="form-group">
+      <label>Delivery Address</label>
+      <input class="form-control" type="text" name="address" value="{{ user.address or '' }}" placeholder="Street, city, state">
+    </div>
+    <button type="submit" class="btn-submit">Save Changes</button>
+    <a href="{{ url_for('dashboard.profile') }}" class="btn btn-secondary" style="margin-left: 10px; padding: 12px 20px; text-decoration:none; border-radius:8px;">Cancel</a>
+  </form>
+</div>
+{% endblock %}

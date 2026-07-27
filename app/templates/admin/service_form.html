@@ -335,36 +335,37 @@
   }
 
   /* ── Dark mode support ── */
-  @media (prefers-color-scheme: dark) {
-    .admin-form-container .card {
-      background: rgba(30, 41, 59, 0.7);
+  /* Dark mode — follows the site-wide toggle (data-theme), not OS preference */
+  [data-theme="dark"] .admin-form-container .card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
-    }
-    .admin-form-container .card:hover {
-      border-color: rgba(139, 92, 246, 0.2);
-    }
-    .form-control, .form-select {
-      background: rgba(15, 23, 42, 0.5);
+  }
+  [data-theme="dark"] .admin-form-container .card:hover {
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+  [data-theme="dark"] .form-control, [data-theme="dark"] .form-select {
+    background: rgba(15, 23, 42, 0.5);
       border-color: #334155;
       color: #f1f5f9;
-    }
-    .form-control:focus, .form-select:focus {
-      border-color: #8b5cf6;
+  }
+  [data-theme="dark"] .form-control:focus, [data-theme="dark"] .form-select:focus {
+    border-color: #8b5cf6;
       background: rgba(15, 23, 42, 0.7);
-    }
-    .form-check-label { color: #cbd5e1; }
-    .toggle-item {
-      background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .form-check-label {
+    color: #cbd5e1;
+  }
+  [data-theme="dark"] .toggle-item {
+    background: rgba(15, 23, 42, 0.3);
       border-color: #334155;
-    }
-    .image-upload-area {
-      background: rgba(15, 23, 42, 0.3);
+  }
+  [data-theme="dark"] .image-upload-area {
+    background: rgba(15, 23, 42, 0.3);
       border-color: #334155;
-    }
-    .image-upload-area:hover {
-      border-color: #8b5cf6;
+  }
+  [data-theme="dark"] .image-upload-area:hover {
+    border-color: #8b5cf6;
       background: rgba(139, 92, 246, 0.08);
-    }
   }
 </style>
 
@@ -474,6 +475,53 @@
                 <div class="helper-text">
                   <span class="icon">⚡</span> 1.5 = 50% extra
                 </div>
+              </div>
+            </div>
+
+            <!-- Print Job Configurator -->
+            <div class="mb-3" style="padding: 16px; background: var(--bg-elevated, #f8fafc); border-radius: 10px; border: 1px solid var(--border-color, #e2e8f0);">
+              <label class="form-label" style="margin-bottom: 10px;">🖨️ Print Job Configurator</label>
+              <p class="helper-text" style="margin: 0 0 14px;">For flex banners, DI, and similar dimensional print jobs priced per square foot (e.g. Flex Banner, DI Printing).</p>
+
+              <div class="toggle-group" style="margin-bottom: 14px;">
+                <div class="toggle-item">
+                  <input type="checkbox" name="is_dimensional" id="is_dimensional" class="form-check-input"
+                         {% if service and service.is_dimensional %}checked{% endif %}>
+                  <label for="is_dimensional" class="toggle-label">
+                    📐 Dimensional pricing
+                    <small>Size dropdown / custom W×H</small>
+                  </label>
+                </div>
+                <div class="toggle-item">
+                  <input type="checkbox" name="requires_upload" id="requires_upload" class="form-check-input"
+                         {% if service and service.requires_upload %}checked{% endif %}>
+                  <label for="requires_upload" class="toggle-label">
+                    📎 Requires file upload
+                    <small>Design file (zip, .cdr, etc.)</small>
+                  </label>
+                </div>
+              </div>
+
+              <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="mb-3">
+                  <label for="price_per_sqft" class="form-label">Price per sq ft ({{ currency }})</label>
+                  <input type="number" step="0.01" name="price_per_sqft" id="price_per_sqft" class="form-control"
+                         value="{{ service.price_per_sqft if service else form_data.get('price_per_sqft', '200') }}" placeholder="200">
+                  <div class="helper-text"><span class="icon">💡</span> Used only when Dimensional pricing is on</div>
+                </div>
+                <div class="mb-3">
+                  <label for="max_upload_mb" class="form-label">Max upload size (MB)</label>
+                  <input type="number" name="max_upload_mb" id="max_upload_mb" class="form-control"
+                         value="{{ service.max_upload_mb if service else form_data.get('max_upload_mb', '50') }}" placeholder="50">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="preset_sizes_raw" class="form-label">Preset sizes</label>
+                <textarea name="preset_sizes_raw" id="preset_sizes_raw" class="form-control" rows="4"
+                          placeholder="One size per line: 2x3&#10;3x5&#10;4x6&#10;or with a custom label: 6x10|Large Banner">{% if service and service.preset_sizes_list %}{% for p in service.preset_sizes_list %}{{ p.width_ft }}x{{ p.height_ft }}|{{ p.label }}
+{% endfor %}{% endif %}</textarea>
+                <div class="helper-text"><span class="icon">💡</span> One size per line as WIDTHxHEIGHT (feet), optionally <code>|Custom Label</code>. Leave blank if not dimensional.</div>
               </div>
             </div>
 

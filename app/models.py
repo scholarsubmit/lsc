@@ -148,6 +148,15 @@ class Service(db.Model):
     is_purchasable = db.Column(db.Boolean, default=True)
     is_featured = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+
+    # ── Print configurator ──
+    # Dimensional services (flex banners etc.) are priced per square foot instead
+    # of a flat unit price. preset_sizes is a JSON list of {"label","width_ft","height_ft"}.
+    is_dimensional = db.Column(db.Boolean, default=False)
+    price_per_sqft = db.Column(db.Float, default=0.0)
+    preset_sizes = db.Column(db.Text, nullable=True)
+    requires_upload = db.Column(db.Boolean, default=False)
+    max_upload_mb = db.Column(db.Integer, default=50)
     
     stock_quantity = db.Column(db.Integer, default=0)
     low_stock_threshold = db.Column(db.Integer, default=5)
@@ -213,6 +222,17 @@ class Service(db.Model):
         if self.has_express_option:
             return round(self.price * self.express_price_multiplier, 2)
         return None
+
+    @property
+    def preset_sizes_list(self):
+        """Parsed list of {'label','width_ft','height_ft'} preset size options."""
+        import json
+        if not self.preset_sizes:
+            return []
+        try:
+            return json.loads(self.preset_sizes)
+        except (ValueError, TypeError):
+            return []
 
     def get_delivery_message(self):
         if not self.is_purchasable:
@@ -310,8 +330,25 @@ class CartItem(db.Model):
     owner = db.relationship("User", back_populates="cart_items")
 
     @property
+    def options_dict(self):
+        import json
+        if not self.options:
+            return {}
+        try:
+            return json.loads(self.options)
+        except (ValueError, TypeError):
+            return {}
+
+    @property
+    def unit_price(self):
+        opts = self.options_dict
+        if opts.get("computed_unit_price") is not None:
+            return round(float(opts["computed_unit_price"]), 2)
+        return self.service.price
+
+    @property
     def subtotal(self):
-        return round(self.service.price * self.quantity, 2)
+        return round(self.unit_price * self.quantity, 2)
 
     def __repr__(self):
         return f"<CartItem {self.service.name} x{self.quantity}>"
@@ -357,20 +394,27 @@ class Order(db.Model):
 
     @property
     def is_paid(self):
-        return self.status in ['paid', 'processing', 'shipped', 'completed']
+        return self.status in ['paid', 'processing', 'shipped', 'completed', 'approved', 'in_production', 'ready_for_delivery', 'delivered']
 
     @property
     def can_cancel(self):
-        return self.status in ['pending', 'paid']
+        return self.status in ['pending', 'paid', 'awaiting_approval']
+
+    STATUS_FLOW = ['awaiting_approval', 'approved', 'in_production', 'ready_for_delivery', 'delivered']
 
     @property
     def status_badge(self):
         status_colors = {
             'pending': 'yellow',
+            'awaiting_approval': 'yellow',
             'paid': 'blue',
+            'approved': 'blue',
             'processing': 'purple',
+            'in_production': 'purple',
             'shipped': 'indigo',
+            'ready_for_delivery': 'indigo',
             'completed': 'green',
+            'delivered': 'green',
             'cancelled': 'red'
         }
         return status_colors.get(self.status, 'gray')
@@ -379,13 +423,26 @@ class Order(db.Model):
     def status_display(self):
         display_map = {
             'pending': 'Pending Payment',
+            'awaiting_approval': 'Awaiting Approval',
             'paid': 'Paid',
+            'approved': 'Approved — Booked for Production',
             'processing': 'Processing',
+            'in_production': 'In Production',
             'shipped': 'Shipped',
+            'ready_for_delivery': 'Ready for Delivery',
             'completed': 'Completed',
+            'delivered': 'Delivered',
             'cancelled': 'Cancelled'
         }
-        return display_map.get(self.status, self.status.title())
+        return display_map.get(self.status, self.status.replace('_', ' ').title())
+
+    @property
+    def status_step_index(self):
+        """0-based index into STATUS_FLOW for rendering a progress tracker; -1 if cancelled/unknown."""
+        try:
+            return self.STATUS_FLOW.index(self.status)
+        except ValueError:
+            return -1
 
     def __repr__(self):
         return f"<Order {self.reference}>"
@@ -407,6 +464,16 @@ class OrderItem(db.Model):
     # Relationships
     service = db.relationship("Service", back_populates="order_items")
     order = db.relationship("Order", back_populates="items")
+
+    @property
+    def options_dict(self):
+        import json
+        if not self.options:
+            return {}
+        try:
+            return json.loads(self.options)
+        except (ValueError, TypeError):
+            return {}
 
     @property
     def subtotal(self):
@@ -496,3 +563,71 @@ class ActivityLog(db.Model):
 
     def __repr__(self):
         return f"<ActivityLog {self.action} - {self.created_at}>"
+
+
+class Ad(db.Model):
+    """Admin-controlled promo banner shown top-left of the landing page hero."""
+    __tablename__ = "ads"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), nullable=False)
+    message = db.Column(db.String(255), nullable=False)
+    link_url = db.Column(db.String(255), nullable=True)
+    badge_text = db.Column(db.String(40), default="Promo")
+    is_active = db.Column(db.Boolean, default=True)
+    starts_at = db.Column(db.DateTime, nullable=True)
+    ends_at = db.Column(db.DateTime, nullable=True)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @property
+    def is_currently_live(self):
+        if not self.is_active:
+            return False
+        now = datetime.utcnow()
+        if self.starts_at and now < self.starts_at:
+            return False
+        if self.ends_at and now > self.ends_at:
+            return False
+        return True
+
+    def __repr__(self):
+        return f"<Ad {self.title}>"
+
+
+class PushSubscription(db.Model):
+    """Web Push subscription for an admin's device/browser, used to send
+    real-time new-order notifications straight to their phone/desktop."""
+    __tablename__ = "push_subscriptions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    endpoint = db.Column(db.String(500), unique=True, nullable=False)
+    p256dh = db.Column(db.String(255), nullable=False)
+    auth = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship("User")
+
+    def __repr__(self):
+        return f"<PushSubscription user={self.user_id}>"
+
+
+class CurrencyRate(db.Model):
+    """Admin-editable exchange rates so prices (stored in Naira) can display
+    in other currencies for the clothing/stock-marketing side of the business."""
+    __tablename__ = "currency_rates"
+
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(10), unique=True, nullable=False)   # e.g. USD
+    name = db.Column(db.String(60), nullable=False)                # e.g. US Dollar
+    symbol = db.Column(db.String(10), nullable=False)              # e.g. $
+    rate_per_ngn = db.Column(db.Float, nullable=False, default=1.0)  # 1 NGN = rate_per_ngn units of this currency
+    is_active = db.Column(db.Boolean, default=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def convert(self, naira_amount):
+        return round(naira_amount * self.rate_per_ngn, 2)
+
+    def __repr__(self):
+        return f"<CurrencyRate {self.code}>"

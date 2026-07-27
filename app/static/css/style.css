@@ -120,7 +120,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   top: 0;
   z-index: 100;
   background: color-mix(in srgb, var(--bg) 90%, transparent);
-  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
 
@@ -149,6 +149,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .main-nav a:hover { color: var(--accent); }
 
 .header-actions { display: flex; align-items: center; gap: 8px; }
+.currency-switcher select {
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-card, white);
+  color: var(--text-color, #0f172a);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+[data-theme="dark"] .currency-switcher select { background: rgba(15,23,42,0.5); border-color: #334155; color: #f1f5f9; }
 
 .icon-btn {
   position: relative;
@@ -243,8 +254,55 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .hero {
   padding: 72px 0 88px;
   background: radial-gradient(circle at 85% 0%, var(--purple-100), transparent 60%);
+  position: relative;
 }
 [data-theme="dark"] .hero { background: radial-gradient(circle at 85% 0%, rgba(139,92,246,0.12), transparent 60%); }
+
+/* ── Homepage promo/ad banner, admin-controlled, top-left of hero ── */
+@keyframes ad-banner-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ad-banner-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.ad-banner-wrap {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+  max-width: min(340px, calc(100vw - 40px));
+}
+.ad-banner {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: linear-gradient(120deg, #f59e0b, #ec4899, #8b5cf6, #f59e0b);
+  background-size: 300% 100%;
+  animation: ad-banner-in 0.5s ease, ad-banner-shimmer 6s linear infinite;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.25);
+}
+.ad-banner.is-active { display: flex; }
+.ad-banner-badge {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.25);
+  padding: 1px 8px;
+  border-radius: 20px;
+}
+.ad-banner-title { font-weight: 800; font-size: 0.9rem; line-height: 1.2; }
+.ad-banner-message { font-size: 0.78rem; opacity: 0.95; line-height: 1.3; }
+@media (max-width: 640px) {
+  .ad-banner-wrap { position: static; margin: 0 auto 20px; max-width: 100%; padding: 0 20px; }
+}
 
 .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
 .eyebrow {
@@ -402,6 +460,19 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transfo
 .status-confirmed, .status-paid, .status-completed { background: rgba(30,158,107,0.15); color: var(--success); }
 .status-cancelled { background: rgba(217,55,110,0.15); color: var(--error); }
 
+/* =============== Admin data tables (services / orders / bookings) =============== */
+/* These pages render a bare <table> directly inside .admin-table-wrap with no other
+   content, so the wrapper itself can scroll horizontally on narrow screens instead of
+   clipping columns or forcing the whole page to scroll sideways. */
+.admin-table-wrap { padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.admin-table-wrap table { min-width: 560px; }
+.admin-table-wrap th, .admin-table-wrap td { padding: 14px 16px; }
+.admin-table-wrap thead { background: var(--bg-elevated); }
+.admin-table-wrap tbody tr:hover { background: var(--bg-elevated); }
+@media (max-width: 640px) {
+  .admin-table-wrap th, .admin-table-wrap td { padding: 10px 12px; font-size: 0.85rem; }
+}
+
 /* =============== Footer =============== */
 .site-footer { border-top: 1px solid var(--border); background: var(--bg-elevated); padding: 56px 0 24px; margin-top: 64px; }
 .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 32px; }
@@ -521,12 +592,12 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transfo
 .showcase-slide-tag {
   display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;
   font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase;
-  background: rgba(255,255,255,0.16); backdrop-filter: blur(6px); padding: 5px 11px; border-radius: 999px;
+  background: rgba(255,255,255,0.16); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); padding: 5px 11px; border-radius: 999px;
 }
 
 .showcase-badge {
   position: absolute; top: 14px; left: 14px; z-index: 3;
-  background: rgba(255,255,255,0.14); backdrop-filter: blur(6px);
+  background: rgba(255,255,255,0.14); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   color: #fff; font-family: var(--font-mono); font-size: 0.72rem;
   padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.25);
 }

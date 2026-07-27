@@ -1,0 +1,80 @@
+<!-- app/templates/admin/ads.html -->
+{% extends "admin/_layout.html" %}
+{% block title %}Landing Page Ads — {{ company_name }}{% endblock %}
+{% block admin_title %}Landing Page Ads{% endblock %}
+
+{% block admin_content %}
+<style>
+  .admin-two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start; }
+  .ad-card { background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .ad-card h4 { margin: 0 0 4px; font-size: 0.95rem; }
+  .ad-card p { margin: 0; color: var(--text-muted, #64748b); font-size: 0.85rem; }
+  .ad-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; background: linear-gradient(135deg,#f59e0b,#ec4899); color: white; padding: 2px 10px; border-radius: 20px; margin-bottom: 6px; }
+  .status-live { color: #10b981; font-weight: 600; font-size: 0.75rem; }
+  .status-off { color: #94a3b8; font-weight: 600; font-size: 0.75rem; }
+  .ad-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .admin-panel { background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+  .form-control { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); background: var(--bg-input, white); color: var(--text-color, #0f172a); box-sizing: border-box; }
+  .btn-submit { width: 100%; padding: 12px; font-weight: 600; color: white; background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; border-radius: 8px; cursor: pointer; }
+  [data-theme="dark"] .ad-card, [data-theme="dark"] .admin-panel { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.06); }
+  [data-theme="dark"] .form-control { background: rgba(15,23,42,0.5); border-color: #334155; color: #f1f5f9; }
+  @media (max-width: 820px) { .admin-two-col { grid-template-columns: 1fr; } }
+</style>
+
+<div class="admin-two-col">
+  <div>
+    {% for ad in ads %}
+    <div class="ad-card">
+      <div>
+        <span class="ad-badge">{{ ad.badge_text }}</span>
+        <h4>{{ ad.title }}</h4>
+        <p>{{ ad.message }}</p>
+        {% if ad.link_url %}<p class="muted" style="font-size:0.75rem; margin-top:4px;">Links to: {{ ad.link_url }}</p>{% endif %}
+        <p class="{{ 'status-live' if ad.is_currently_live else 'status-off' }}" style="margin-top:6px;">
+          {{ 'LIVE on homepage' if ad.is_currently_live else ('Inactive' if not ad.is_active else 'Scheduled / expired') }}
+        </p>
+      </div>
+      <div class="ad-actions">
+        <form method="post" action="{{ url_for('admin.toggle_ad', ad_id=ad.id) }}">
+          <button type="submit" class="btn btn-secondary" style="padding:6px 14px; font-size:0.8rem;">{{ 'Turn off' if ad.is_active else 'Turn on' }}</button>
+        </form>
+        <form method="post" action="{{ url_for('admin.delete_ad', ad_id=ad.id) }}" onsubmit="return confirm('Delete this ad?');">
+          <button type="submit" class="btn-delete" style="padding:6px 12px; font-size:0.8rem; color:#ef4444; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.15); border-radius:6px; cursor:pointer;">Delete</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty-state" style="text-align:center; padding: 40px 20px;">
+      <div style="font-size:3rem; opacity:0.4;">📢</div>
+      <p class="muted">No ads yet. Create one to promote a sale or announcement on the homepage.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="admin-panel">
+    <h3 style="margin:0 0 4px;">New Ad</h3>
+    <p class="muted" style="font-size:0.85rem; margin:0 0 16px;">Shows as an animated banner top-left of the homepage hero.</p>
+    <form method="post">
+      <div class="form-group">
+        <label>Badge text</label>
+        <input class="form-control" type="text" name="badge_text" value="Promo" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label>Title</label>
+        <input class="form-control" type="text" name="title" placeholder="e.g. 20% Off Flex Banners" required>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <input class="form-control" type="text" name="message" placeholder="e.g. This week only — mention this ad in-store." required>
+      </div>
+      <div class="form-group">
+        <label>Link (optional)</label>
+        <input class="form-control" type="text" name="link_url" placeholder="e.g. /services/flex-banner-printing">
+      </div>
+      <button type="submit" class="btn-submit">Publish Ad</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

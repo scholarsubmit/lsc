@@ -1,14 +1,52 @@
 # app/blueprints/cart/routes.py
+import json
+import os
+import uuid
+import logging
+from datetime import datetime
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from flask_login import login_required, current_user
-from datetime import datetime
-import logging
+from werkzeug.utils import secure_filename
 
 from app.extensions import db
-from app.models import Service, CartItem, Order, OrderItem
+from app.models import Service, CartItem, Order, OrderItem, Notification, User
+from app.utils.notify import notify_admins_new_order
 
 cart_bp = Blueprint("cart", __name__)
 logger = logging.getLogger(__name__)
+
+
+def _allowed_upload(filename):
+    if "." not in filename:
+        return False
+    ext = filename.rsplit(".", 1)[1].lower()
+    return ext in current_app.config.get("ALLOWED_UPLOAD_EXTENSIONS", set())
+
+
+def _save_print_job_file(file_storage, service):
+    """Saves an uploaded print-job design file under UPLOAD_FOLDER/print-jobs/<user_id>/
+    and returns (relative_path, original_filename), or (None, None) if no valid file."""
+    if not file_storage or not file_storage.filename:
+        return None, None
+    if not _allowed_upload(file_storage.filename):
+        allowed = ", ".join(sorted(current_app.config.get("ALLOWED_UPLOAD_EXTENSIONS", [])))
+        raise ValueError(f"That file type isn't supported. Allowed: {allowed}.")
+
+    original_name = file_storage.filename
+    ext = original_name.rsplit(".", 1)[1].lower()
+    safe_name = f"{uuid.uuid4().hex}.{ext}"
+    user_dir = os.path.join(current_app.config["UPLOAD_FOLDER"], "print-jobs", str(current_user.id))
+    os.makedirs(user_dir, exist_ok=True)
+    file_storage.save(os.path.join(user_dir, safe_name))
+    relative_path = os.path.join("print-jobs", str(current_user.id), safe_name)
+    return relative_path, secure_filename(original_name)
+
+
+def _compute_dimensional_price(service, width_ft, height_ft):
+    """Flex/DI-style pricing: price per square foot × area, per the admin's rate."""
+    area = max(0.0, width_ft) * max(0.0, height_ft)
+    return round(area * (service.price_per_sqft or 0), 2)
 
 
 @cart_bp.route("/")
@@ -50,12 +88,69 @@ def add_to_cart(slug):
         
         quantity = max(1, int(request.form.get("quantity", 1)))
         notes = request.form.get("customization_notes", "").strip()
+        options = {}
 
-        # Check if item already in cart
-        existing = CartItem.query.filter_by(
-            user_id=current_user.id, 
-            service_id=service.id
-        ).first()
+        # ── Print-job configurator: dimensional pricing + design upload ──
+        if service.is_dimensional:
+            size_choice = request.form.get("size_choice", "").strip()
+            if size_choice == "custom":
+                try:
+                    width_ft = float(request.form.get("custom_width", 0))
+                    height_ft = float(request.form.get("custom_height", 0))
+                except ValueError:
+                    flash("Enter a valid width and height in feet.", "error")
+                    return redirect(url_for("catalog.detail", slug=slug))
+                if width_ft <= 0 or height_ft <= 0:
+                    flash("Width and height must be greater than 0.", "error")
+                    return redirect(url_for("catalog.detail", slug=slug))
+                size_label = f'Custom {width_ft:g} x {height_ft:g} ft'
+            else:
+                presets = {p["label"]: p for p in service.preset_sizes_list}
+                preset = presets.get(size_choice)
+                if not preset:
+                    flash("Please choose a size.", "error")
+                    return redirect(url_for("catalog.detail", slug=slug))
+                width_ft = float(preset["width_ft"])
+                height_ft = float(preset["height_ft"])
+                size_label = preset["label"]
+
+            unit_price = _compute_dimensional_price(service, width_ft, height_ft)
+            options.update({
+                "size_label": size_label,
+                "width_ft": width_ft,
+                "height_ft": height_ft,
+                "price_per_sqft": service.price_per_sqft,
+                "computed_unit_price": unit_price,
+            })
+
+        if service.requires_upload:
+            if not request.form.get("curves_confirmed"):
+                flash("Please confirm your design file is converted to curves before adding to cart.", "error")
+                return redirect(url_for("catalog.detail", slug=slug))
+            try:
+                rel_path, original_name = _save_print_job_file(request.files.get("design_file"), service)
+            except ValueError as e:
+                flash(str(e), "error")
+                return redirect(url_for("catalog.detail", slug=slug))
+            if not rel_path:
+                flash("Please upload your design file (zip, .cdr, or similar — max 50MB).", "error")
+                return redirect(url_for("catalog.detail", slug=slug))
+            options.update({
+                "upload_path": rel_path,
+                "upload_original_name": original_name,
+                "curves_confirmed": True,
+            })
+
+        options_json = json.dumps(options) if options else None
+
+        # Dimensional/upload jobs are kept as distinct line items rather than merged
+        # with an existing cart row, since each has its own size/file.
+        existing = None
+        if not options_json:
+            existing = CartItem.query.filter_by(
+                user_id=current_user.id,
+                service_id=service.id
+            ).filter(CartItem.options.is_(None)).first()
         
         if existing:
             existing.quantity += quantity
@@ -67,7 +162,8 @@ def add_to_cart(slug):
                     user_id=current_user.id, 
                     service_id=service.id, 
                     quantity=quantity, 
-                    customization_notes=notes
+                    customization_notes=notes,
+                    options=options_json,
                 )
             )
         
@@ -259,31 +355,40 @@ def checkout():
                 total_amount=total,
                 shipping_address=shipping_address,
                 payment_method=payment_method,
-                status="pending",
+                status="awaiting_approval",
                 order_notes=order_notes
             )
             db.session.add(order)
             db.session.flush()
 
-            # Create order items
+            # Create order items — carry over the computed print-job price and
+            # uploaded design file reference (if any) from the cart item's options.
             for item in items:
                 db.session.add(
                     OrderItem(
                         order_id=order.id,
                         service_id=item.service_id,
                         service_name=item.service.name,
-                        unit_price=item.service.price,
+                        unit_price=item.unit_price,
                         quantity=item.quantity,
+                        options=item.options,
                     )
                 )
                 db.session.delete(item)
 
             db.session.commit()
+
+            # Notify admins (in-app bell + best-effort web push) so a new print
+            # job doesn't sit unnoticed waiting for approval.
+            try:
+                notify_admins_new_order(order)
+            except Exception as e:
+                logger.warning(f"notify_admins_new_order failed: {e}")
             
             # Clear cart from session
             session.pop('cart_count', None)
             
-            flash(f"Order placed! Your reference is {order.reference}.", "success")
+            flash(f"Order placed! Your reference is {order.reference}. We'll notify you once it's approved.", "success")
             
             # Redirect to payment if using Paystack
             if payment_method == "paystack":

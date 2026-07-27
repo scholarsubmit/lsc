@@ -1,0 +1,128 @@
+<!-- app/templates/dashboard/_layout.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dash-wrapper">
+    <aside class="dash-sidebar">
+        <div class="dash-sidebar-header">
+            <a href="{{ url_for('dashboard.index') }}" class="dash-brand">
+                <span class="brand-icon">🖨️</span>
+                <span class="brand-name">My Account</span>
+            </a>
+        </div>
+
+        <nav class="dash-nav">
+            <a href="{{ url_for('dashboard.index') }}" class="dash-nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                <i class="fas fa-gauge" aria-hidden="true"></i>
+                <span>Overview</span>
+            </a>
+            <a href="{{ url_for('dashboard.my_orders') }}" class="dash-nav-item {% if request.endpoint in ['dashboard.orders', 'dashboard.my_orders', 'dashboard.order_detail'] %}active{% endif %}">
+                <i class="fas fa-box" aria-hidden="true"></i>
+                <span>My Orders</span>
+            </a>
+            <a href="{{ url_for('dashboard.my_bookings') }}" class="dash-nav-item {% if request.endpoint in ['dashboard.bookings', 'dashboard.my_bookings', 'dashboard.booking_detail'] %}active{% endif %}">
+                <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                <span>My Bookings</span>
+            </a>
+            <a href="{{ url_for('catalog.list_services') }}" class="dash-nav-item">
+                <i class="fas fa-plus" aria-hidden="true"></i>
+                <span>Start New Order</span>
+            </a>
+        </nav>
+
+        {% if active_currencies|length > 1 %}
+        <div class="dash-currency-picker">
+            <label for="dash-currency-select">Currency</label>
+            <select id="dash-currency-select">
+                {% for c in active_currencies %}
+                <option value="{{ c.code }}" {{ 'selected' if selected_currency == c.code }}>{{ c.code }} ({{ c.symbol }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="dash-sidebar-footer">
+            <button type="button" class="dash-nav-item theme-toggle-btn" style="width: 100%; background: none; border: none; cursor: pointer; font: inherit; text-align: left;">
+                <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+                <span>Toggle light / dark</span>
+            </button>
+            <a href="{{ url_for('main.index') }}" class="dash-nav-item">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                <span>Back to Site</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="dash-nav-item logout">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="dash-content">
+        {% block dashboard_content %}{% endblock %}
+    </main>
+</div>
+
+<style>
+.dash-wrapper { display: flex; min-height: calc(100vh - 64px); }
+.dash-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--bg-card, #ffffff);
+    border-right: 1px solid var(--border-color, #e2e8f0);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+}
+.dash-sidebar-header { padding: 0 20px 20px; border-bottom: 1px solid var(--border-color, #e2e8f0); margin-bottom: 12px; }
+.dash-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-color, #0f172a); font-weight: 700; }
+.dash-brand .brand-icon { font-size: 1.3rem; }
+.dash-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; flex: 1; }
+.dash-nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 8px;
+    color: var(--text-muted, #64748b); text-decoration: none;
+    font-size: 0.88rem; font-weight: 500;
+    transition: all 0.15s ease;
+}
+.dash-nav-item i { width: 18px; text-align: center; color: inherit; }
+.dash-nav-item:hover { background: var(--bg-elevated, #f1f5f9); color: var(--text-color, #0f172a); }
+.dash-nav-item.active { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; font-weight: 700; }
+.dash-currency-picker { padding: 14px 20px; border-top: 1px solid var(--border-color, #e2e8f0); margin-top: 8px; }
+.dash-currency-picker label { display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted, #94a3b8); margin-bottom: 6px; font-weight: 700; }
+.dash-currency-picker select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); background: var(--bg-input, white); color: var(--text-color, #0f172a); font-size: 0.85rem; }
+.dash-sidebar-footer { padding: 12px 12px 0; border-top: 1px solid var(--border-color, #e2e8f0); margin-top: 12px; display: flex; flex-direction: column; gap: 2px; }
+.dash-sidebar-footer .logout { color: #ef4444; }
+.dash-content { flex: 1; min-width: 0; }
+[data-theme="dark"] .dash-sidebar { background: rgba(30,41,59,0.5); border-right-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .dash-sidebar-header, [data-theme="dark"] .dash-sidebar-footer { border-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .dash-nav-item:hover { background: rgba(255,255,255,0.04); }
+[data-theme="dark"] .dash-currency-picker select { background: rgba(15,23,42,0.5); border-color: #334155; color: #f1f5f9; }
+
+@media (max-width: 900px) {
+    .dash-wrapper { flex-direction: column; }
+    .dash-sidebar { width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; padding: 12px 16px; align-items: center; }
+    .dash-sidebar-header { border: none; margin: 0; padding: 0 12px 0 0; }
+    .dash-nav { flex-direction: row; flex-wrap: wrap; padding: 0; }
+    .dash-currency-picker, .dash-sidebar-footer { border: none; margin: 0; padding: 0 0 0 8px; flex-direction: row; }
+    .dash-sidebar-footer .dash-nav-item span { display: none; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const currencySelect = document.getElementById('dash-currency-select');
+  if (currencySelect) {
+    currencySelect.addEventListener('change', function () {
+      fetch('{{ url_for("main.set_currency", code="XXX") }}'.replace('XXX', this.value), {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      }).then(function () { window.location.reload(); });
+    });
+  }
+});
+</script>
+{% endblock %}

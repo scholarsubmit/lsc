@@ -20,6 +20,13 @@
 
   targets.forEach(function (el) { io.observe(el); });
 
+  // Safety net: some in-app/embedded mobile browsers throttle or delay
+  // IntersectionObserver callbacks. Never leave content permanently hidden —
+  // force-reveal anything still waiting after 4s.
+  setTimeout(function () {
+    targets.forEach(function (el) { el.classList.add('is-visible'); });
+  }, 4000);
+
   // Stagger children of .reveal-stagger containers via an --i custom property
   document.querySelectorAll('.reveal-stagger').forEach(function (group) {
     Array.prototype.forEach.call(group.children, function (child, i) {

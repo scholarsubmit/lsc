@@ -130,3 +130,16 @@ function showToast(message) {
   stack.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
+
+// ── Header currency switcher ──
+document.addEventListener("DOMContentLoaded", function () {
+  const headerCurrencySelect = document.getElementById("header-currency-select");
+  if (headerCurrencySelect) {
+    headerCurrencySelect.addEventListener("change", function () {
+      fetch(`/set-currency/${this.value}`, {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      }).then(function () { window.location.reload(); });
+    });
+  }
+});

@@ -61,6 +61,30 @@ def create_app(config_name=None):
             "cart_count": cart_count,
         }
 
+    # Template filter: convert a stored Naira amount into the shopper's chosen
+    # display currency (prices are always stored/computed in Naira; this is
+    # purely presentational).
+    @app.template_filter("money")
+    def money_filter(amount):
+        from flask import session
+        from flask_login import current_user
+        from app.models import CurrencyRate
+
+        amount = amount or 0
+        code = session.get("currency")
+        if not code and current_user.is_authenticated:
+            code = getattr(current_user, "preferred_currency", None)
+        code = code or "NGN"
+
+        if code == "NGN":
+            return f'{app.config["CURRENCY_SYMBOL"]}{amount:,.2f}'
+
+        rate = CurrencyRate.query.filter_by(code=code, is_active=True).first()
+        if not rate:
+            return f'{app.config["CURRENCY_SYMBOL"]}{amount:,.2f}'
+        converted = amount * rate.rate_per_ngn
+        return f'{rate.symbol}{converted:,.2f}'
+
     # Simple error pages
     @app.errorhandler(403)
     def forbidden(e):

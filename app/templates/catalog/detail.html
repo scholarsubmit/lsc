@@ -78,7 +78,7 @@
           </span>
           {% if service.has_express_option %}
           <span class="badge-pill badge-express" style="font-size: 0.75rem; background: #10b981; color: white; padding: 4px 14px;">
-            Express: {{ currency }}{{ "%.2f"|format(service.express_price) }}
+            Express: {{ service.express_price | money }}
           </span>
           {% endif %}
         </div>
@@ -86,13 +86,20 @@
 
       <!-- Price Display -->
       <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        {% if service.is_dimensional %}
+        <p class="price" id="dimensional-price-display" style="font-size: 1.8rem; font-weight: 700; color: var(--primary); margin: 0;">
+          {{ service.price_per_sqft | money }}
+          <small class="muted" style="font-family: var(--font-body); font-weight: 400; font-size: 1rem;">/ sq ft — select a size below</small>
+        </p>
+        {% else %}
         <p class="price" style="font-size: 1.8rem; font-weight: 700; color: var(--primary); margin: 0;">
-          {{ currency }}{{ "%.2f"|format(service.price) }}
+          {{ service.price | money }}
           <small class="muted" style="font-family: var(--font-body); font-weight: 400; font-size: 1rem;">/ {{ service.unit }}</small>
         </p>
+        {% endif %}
         {% if service.is_on_sale and service.compare_at_price and service.compare_at_price > service.price %}
         <p class="muted" style="font-size: 1.1rem; text-decoration: line-through; margin: 0;">
-          {{ currency }}{{ "%.2f"|format(service.compare_at_price) }}
+          {{ service.compare_at_price | money }}
         </p>
         <span style="background: #ef4444; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
           SAVE {{ service.discount_percentage }}%
@@ -118,10 +125,67 @@
       </div>
       {% endif %}
 
+      <!-- Print Job Configurator -->
+      {% if service.is_dimensional or service.requires_upload %}
+      <div class="print-configurator" style="margin: 20px 0; padding: 20px; background: var(--bg-elevated); border-radius: var(--radius); border: 1px solid var(--border);">
+        <h3 style="margin: 0 0 16px; font-size: 1.05rem;">
+          <i class="fas fa-ruler-combined" aria-hidden="true" style="margin-right: 6px; color: var(--primary);"></i>
+          Configure your print job
+        </h3>
+
+        {% if service.is_dimensional %}
+        <div style="margin-bottom: 16px;">
+          <label for="size_choice" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Size</label>
+          <select id="size_choice" name="size_choice" form="print-job-form" style="width: 100%; max-width: 360px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-color);">
+            <option value="">Choose a size…</option>
+            {% for preset in service.preset_sizes_list %}
+            <option value="{{ preset.label }}" data-width="{{ preset.width_ft }}" data-height="{{ preset.height_ft }}">{{ preset.label }}</option>
+            {% endfor %}
+            <option value="custom">Custom size…</option>
+          </select>
+
+          <div id="custom-size-fields" style="display: none; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+            <div>
+              <label for="custom_width" style="display: block; font-size: 0.8rem; margin-bottom: 4px;">Width (ft)</label>
+              <input type="number" id="custom_width" name="custom_width" form="print-job-form" min="0.1" step="0.1" placeholder="e.g. 3" style="width: 110px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-color);">
+            </div>
+            <div>
+              <label for="custom_height" style="display: block; font-size: 0.8rem; margin-bottom: 4px;">Height (ft)</label>
+              <input type="number" id="custom_height" name="custom_height" form="print-job-form" min="0.1" step="0.1" placeholder="e.g. 5" style="width: 110px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-color);">
+            </div>
+          </div>
+
+          <p id="computed-price-line" style="display: none; margin: 14px 0 0; font-weight: 700; font-size: 1.15rem; color: var(--primary);">
+            Estimated price: <span id="computed-price-value">—</span>
+          </p>
+        </div>
+        {% endif %}
+
+        {% if service.requires_upload %}
+        <div>
+          <label for="design_file" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Upload your design file</label>
+          <input type="file" id="design_file" name="design_file" form="print-job-form" style="width: 100%; max-width: 420px; padding: 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border); background: var(--bg-card);">
+          <p class="muted" style="font-size: 0.8rem; margin: 6px 0 0;">
+            Accepted: ZIP, CDR (CorelDRAW), AI, EPS, PDF, PSD, SVG, or high-res image — max {{ service.max_upload_mb }}MB.
+          </p>
+
+          <div style="margin-top: 12px; padding: 12px 14px; background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b; border-radius: var(--radius-sm); font-size: 0.85rem;">
+            <strong>⚠ Important:</strong> please make sure all text and fonts in your design are converted to curves/outlines before uploading. Files that aren't converted to curves can print with the wrong fonts, spacing, or missing elements.
+          </div>
+
+          <label style="display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" id="curves_confirmed" name="curves_confirmed" form="print-job-form" value="1" style="margin-top: 3px;">
+            <span>I confirm my design file has already been converted to curves/outlines and is ready for print.</span>
+          </label>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
       <!-- Action Buttons -->
       <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px">
         {% if service.is_purchasable and service.is_in_stock %}
-        <form class="add-to-cart-form" action="{{ url_for('cart.add_to_cart', slug=service.slug) }}" method="post" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <form id="print-job-form" class="add-to-cart-form" action="{{ url_for('cart.add_to_cart', slug=service.slug) }}" method="post" enctype="multipart/form-data" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
           <div class="qty-stepper" style="display: flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden;">
             <button type="button" data-delta="-1" class="btn-sm" style="border: none; background: var(--bg-elevated); padding: 9px 14px; cursor: pointer; font-size: 1.2rem;">−</button>
             <input type="number" name="quantity" value="1" min="1" {% if service.track_inventory %}max="{{ service.stock_quantity }}"{% endif %} style="width: 56px; text-align: center; border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border); border-radius: 0; padding: 8px 0;">
@@ -224,7 +288,7 @@
             </p>
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span class="price" style="font-size: 0.9rem; font-weight: 600; color: var(--primary);">
-                {{ currency }}{{ "%.2f"|format(rec.price) }}
+                {{ rec.price | money }}
                 <small class="muted" style="font-weight: 400; font-size: 0.7rem">/ {{ rec.unit }}</small>
               </span>
               <span style="font-size: 0.7rem; color: var(--text-muted)">
@@ -268,7 +332,7 @@
             </h3>
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span class="price" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">
-                {{ currency }}{{ "%.2f"|format(s.price) }}
+                {{ s.price | money }}
               </span>
               <span style="font-size: 0.7rem; color: var(--text-muted)">
                 {% if s.reviews %} ★ {{ s.average_rating }} {% endif %}
@@ -658,6 +722,111 @@
       if (saveText) saveText.textContent = 'Saved ❤️';
     }
   });
+
+  // ── Print job configurator: size picker, custom dimensions, live pricing ──
+  {% if service.is_dimensional or service.requires_upload %}
+  document.addEventListener('DOMContentLoaded', function() {
+    const isDimensional = {{ 'true' if service.is_dimensional else 'false' }};
+    const requiresUpload = {{ 'true' if service.requires_upload else 'false' }};
+    const pricePerSqft = {{ service.price_per_sqft or 0 }};
+    const maxUploadMb = {{ service.max_upload_mb or 50 }};
+    const currencySymbol = "{{ currency }}";
+
+    const sizeChoice = document.getElementById('size_choice');
+    const customFields = document.getElementById('custom-size-fields');
+    const customWidth = document.getElementById('custom_width');
+    const customHeight = document.getElementById('custom_height');
+    const priceLine = document.getElementById('computed-price-line');
+    const priceValue = document.getElementById('computed-price-value');
+    const designFile = document.getElementById('design_file');
+    const jobForm = document.getElementById('print-job-form');
+
+    function formatPrice(n) {
+      return currencySymbol + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function recomputePrice() {
+      if (!isDimensional || !sizeChoice) return;
+      let width = 0, height = 0;
+      if (sizeChoice.value === 'custom') {
+        width = parseFloat(customWidth.value) || 0;
+        height = parseFloat(customHeight.value) || 0;
+      } else if (sizeChoice.value) {
+        const opt = sizeChoice.options[sizeChoice.selectedIndex];
+        width = parseFloat(opt.dataset.width) || 0;
+        height = parseFloat(opt.dataset.height) || 0;
+      }
+      if (width > 0 && height > 0) {
+        const price = width * height * pricePerSqft;
+        priceValue.textContent = formatPrice(price) + ` (${width}ft × ${height}ft)`;
+        priceLine.style.display = 'block';
+      } else {
+        priceLine.style.display = 'none';
+      }
+    }
+
+    if (sizeChoice) {
+      sizeChoice.addEventListener('change', function() {
+        if (customFields) {
+          customFields.style.display = sizeChoice.value === 'custom' ? 'flex' : 'none';
+        }
+        recomputePrice();
+      });
+    }
+    if (customWidth) customWidth.addEventListener('input', recomputePrice);
+    if (customHeight) customHeight.addEventListener('input', recomputePrice);
+
+    // Client-side file size check — the server enforces the real limit,
+    // this just gives faster feedback instead of a full failed upload.
+    if (designFile) {
+      designFile.addEventListener('change', function() {
+        if (designFile.files.length) {
+          const sizeMb = designFile.files[0].size / (1024 * 1024);
+          if (sizeMb > maxUploadMb) {
+            showToast(`That file is ${sizeMb.toFixed(1)}MB — max allowed is ${maxUploadMb}MB.`, 'info');
+            designFile.value = '';
+          }
+        }
+      });
+    }
+
+    // Friendly validation before submit, so people don't lose their place
+    // in the form to a full page reload over something fixable inline.
+    if (jobForm) {
+      jobForm.addEventListener('submit', function(e) {
+        if (isDimensional) {
+          if (!sizeChoice.value) {
+            e.preventDefault();
+            showToast('Please choose a size first.', 'info');
+            return;
+          }
+          if (sizeChoice.value === 'custom') {
+            const w = parseFloat(customWidth.value) || 0;
+            const h = parseFloat(customHeight.value) || 0;
+            if (w <= 0 || h <= 0) {
+              e.preventDefault();
+              showToast('Enter a width and height greater than 0.', 'info');
+              return;
+            }
+          }
+        }
+        if (requiresUpload) {
+          if (!designFile.files.length) {
+            e.preventDefault();
+            showToast('Please upload your design file.', 'info');
+            return;
+          }
+          const curvesBox = document.getElementById('curves_confirmed');
+          if (!curvesBox.checked) {
+            e.preventDefault();
+            showToast('Please confirm your file is converted to curves.', 'info');
+            return;
+          }
+        }
+      });
+    }
+  });
+  {% endif %}
 
   // ── Add slideUp animation for toast ──
   const style = document.createElement('style');

@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "dashboard/_layout.html" %}
 {% block title %}My orders — {{ company_name }}{% endblock %}
-{% block content %}
+{% block dashboard_content %}
 <style>
   /* ── Base Animation Keyframes ── */
   @keyframes fadeInUp {
@@ -151,7 +151,7 @@
     gap: 8px;
     padding: 10px 18px;
     background: rgba(255,255,255,0.7);
-    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.5);
     border-radius: 50px;
     font-size: 0.85rem;
@@ -185,7 +185,7 @@
 
   .order-card {
     background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
     -webkit-backdrop-filter: blur(20px) saturate(1.5);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 20px;
@@ -277,6 +277,14 @@
     color: #dc2626;
   }
   .status-cancelled::before { background: #ef4444; color: #ef4444; }
+  .status-awaiting_approval { background: rgba(245,158,11,0.12); color: #f59e0b; }
+  .status-awaiting_approval::before { background: #f59e0b; color: #f59e0b; }
+  .status-approved { background: rgba(56,189,248,0.12); color: #0ea5e9; }
+  .status-approved::before { background: #0ea5e9; color: #0ea5e9; }
+  .status-in_production { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+  .status-in_production::before { background: #8b5cf6; color: #8b5cf6; }
+  .status-ready_for_delivery { background: rgba(99,102,241,0.12); color: #6366f1; }
+  .status-ready_for_delivery::before { background: #6366f1; color: #6366f1; }
 
   .order-amount {
     font-size: 1.5rem;
@@ -410,39 +418,56 @@
   }
 
   /* ── Dark mode support ── */
-  @media (prefers-color-scheme: dark) {
-    .orders-page {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);
-    }
-    .header-content h1 { color: #f8fafc; }
-    .header-content p { color: #94a3b8; }
-    .stat-pill {
-      background: rgba(30, 41, 59, 0.6);
+  /* Dark mode — follows the site-wide toggle (data-theme), not OS preference */
+  [data-theme="dark"] .orders-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);
+  }
+  [data-theme="dark"] .header-content h1 {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .header-content p {
+    color: #94a3b8;
+  }
+  [data-theme="dark"] .stat-pill {
+    background: rgba(30, 41, 59, 0.6);
       border-color: rgba(255,255,255,0.06);
       color: #cbd5e1;
-    }
-    .order-card {
-      background: rgba(30, 41, 59, 0.7);
+  }
+  [data-theme="dark"] .order-card {
+    background: rgba(30, 41, 59, 0.7);
       border-color: rgba(255,255,255,0.06);
       box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.1);
-    }
-    .order-card:hover {
-      border-color: rgba(139, 92, 246, 0.2);
+  }
+  [data-theme="dark"] .order-card:hover {
+    border-color: rgba(139, 92, 246, 0.2);
       box-shadow: 0 12px 32px rgba(0,0,0,0.2), 0 4px 12px rgba(139, 92, 246, 0.1);
-    }
-    .order-amount {
-      background: linear-gradient(135deg, #818cf8, #a78bfa);
+  }
+  [data-theme="dark"] .order-amount {
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-    }
-    .order-date { color: #64748b; }
-    .view-link { color: #818cf8; }
-    .view-link:hover { color: #a78bfa; }
-    .item-count { color: #64748b; }
-    .order-footer { border-top-color: #334155; }
-    .empty-title { color: #f8fafc; }
-    .empty-text { color: #94a3b8; }
+  }
+  [data-theme="dark"] .order-date {
+    color: #64748b;
+  }
+  [data-theme="dark"] .view-link {
+    color: #818cf8;
+  }
+  [data-theme="dark"] .view-link:hover {
+    color: #a78bfa;
+  }
+  [data-theme="dark"] .item-count {
+    color: #64748b;
+  }
+  [data-theme="dark"] .order-footer {
+    border-top-color: #334155;
+  }
+  [data-theme="dark"] .empty-title {
+    color: #f8fafc;
+  }
+  [data-theme="dark"] .empty-text {
+    color: #94a3b8;
   }
 </style>
 
@@ -471,15 +496,15 @@
   <div class="stats-bar">
     <div class="stat-pill">
       <span class="stat-dot pending"></span>
-      {{ orders | selectattr('status', 'equalto', 'pending') | list | length }} Pending
+      {{ orders | selectattr('status', 'equalto', 'awaiting_approval') | list | length }} Awaiting Approval
     </div>
     <div class="stat-pill">
       <span class="stat-dot processing"></span>
-      {{ orders | selectattr('status', 'equalto', 'processing') | list | length }} Processing
+      {{ orders | selectattr('status', 'equalto', 'in_production') | list | length }} In Production
     </div>
     <div class="stat-pill">
       <span class="stat-dot shipped"></span>
-      {{ orders | selectattr('status', 'equalto', 'shipped') | list | length }} Shipped
+      {{ orders | selectattr('status', 'equalto', 'ready_for_delivery') | list | length }} Ready for Delivery
     </div>
     <div class="stat-pill">
       <span class="stat-dot delivered"></span>
@@ -493,9 +518,9 @@
       <a href="{{ url_for('dashboard.order_detail', order_id=o.id) }}" class="order-card" style="animation-delay: {{ loop.index * 0.08 }}s;">
         <div class="order-header-row">
           <span class="order-ref">{{ o.reference }}</span>
-          <span class="status-pill status-{{ o.status }}">{{ o.status }}</span>
+          <span class="status-pill status-{{ o.status }}">{{ o.status_display }}</span>
         </div>
-        <div class="order-amount">{{ currency }}{{ "%.2f"|format(o.total_amount) }}</div>
+        <div class="order-amount">{{ o.total_amount | money }}</div>
         <div class="order-date">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           {{ o.created_at.strftime('%d %b %Y') }}

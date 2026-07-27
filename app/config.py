@@ -44,6 +44,30 @@ class Config:
     # Payments
     PAYSTACK_PUBLIC_KEY = os.environ.get("PAYSTACK_PUBLIC_KEY", "")
     PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY", "")
+
+    # ── Print job uploads ──
+    # NOTE: on Render's free plan the filesystem is ephemeral — files here won't
+    # survive a redeploy/restart. For production, point this at a persistent
+    # disk (Render "Disks" add-on) or swap in S3/Cloudinary storage.
+    UPLOAD_FOLDER = os.environ.get(
+        "UPLOAD_FOLDER", os.path.join(BASE_DIR, "instance", "uploads")
+    )
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50 MB, matches the print-job upload limit
+    ALLOWED_UPLOAD_EXTENSIONS = {
+        "zip", "rar", "7z", "cdr", "ai", "eps", "pdf", "psd", "svg",
+        "png", "jpg", "jpeg", "tiff", "tif",
+    }
+    try:
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    except Exception:
+        pass
+
+    # ── Web Push (real-time admin order notifications) ──
+    # Generate once with: python -c "from pywebpush import webpush; from py_vapid import Vapid01; v=Vapid01(); v.generate_keys(); print(v.private_pem()); print(v.public_key)"
+    # or simpler: pip install py-vapid && vapid --gen
+    VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+    VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+    VAPID_CLAIM_EMAIL = os.environ.get("VAPID_CLAIM_EMAIL", "mailto:" + os.environ.get("COMPANY_EMAIL", "admin@example.com"))
     
     # ── FIX: Set PREFERRED_URL_SCHEME for HTTPS ──
     PREFERRED_URL_SCHEME = 'https'
