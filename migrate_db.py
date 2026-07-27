@@ -1,8 +1,10 @@
 # migrate_db.py
-# Idempotent schema upgrade: adds any new columns/tables introduced after the
-# original release without needing a full Alembic migration. Safe to run
-# every deploy (build step) and every local start — it only ever adds
-# missing things, never drops or alters existing data.
+# Idempotent schema upgrade: compares every SQLAlchemy model against the
+# actual database schema and adds any columns that exist in the code but
+# not yet in the database. This covers old schema drift as well as new
+# fields, without needing a full Alembic migration. Safe to run on every
+# deploy (build step) and every local start — it only ever adds columns,
+# it never drops or alters existing data.
 #
 # Usage: python3 migrate_db.py
 
@@ -11,33 +13,56 @@ from sqlalchemy import inspect, text
 from app import create_app
 from app.extensions import db
 
-# table -> [(column_name, DDL_type_clause), ...]
-NEW_COLUMNS = {
-    "services": [
-        ("is_dimensional", "BOOLEAN DEFAULT FALSE"),
-        ("price_per_sqft", "FLOAT DEFAULT 0"),
-        ("preset_sizes", "TEXT"),
-        ("requires_upload", "BOOLEAN DEFAULT FALSE"),
-        ("max_upload_mb", "INTEGER DEFAULT 50"),
-    ],
-}
+
+def _ddl_type_for(column, dialect):
+    """Best-effort SQL type string for an ALTER TABLE ADD COLUMN, plus a safe
+    default clause when the model declares a simple (non-callable) default."""
+    try:
+        col_type = column.type.compile(dialect=dialect)
+    except Exception:
+        col_type = "TEXT"
+
+    default_clause = ""
+    default = column.default
+    if default is not None and getattr(default, "is_scalar", False):
+        value = default.arg
+        if isinstance(value, bool):
+            default_clause = f" DEFAULT {'TRUE' if value else 'FALSE'}"
+        elif isinstance(value, (int, float)):
+            default_clause = f" DEFAULT {value}"
+        elif isinstance(value, str):
+            escaped = value.replace("'", "''")
+            default_clause = f" DEFAULT '{escaped}'"
+        # callables (e.g. datetime.utcnow, generate_reference) can't be
+        # expressed as a SQL literal default — new rows still get them from
+        # the ORM; existing rows are simply left NULL, which is fine since
+        # every nullable-by-necessity field here tolerates that.
+
+    return f"{col_type}{default_clause}"
 
 
 def ensure_columns(app):
     with app.app_context():
         inspector = inspect(db.engine)
+        dialect = db.engine.dialect
         existing_tables = set(inspector.get_table_names())
 
-        for table, columns in NEW_COLUMNS.items():
-            if table not in existing_tables:
-                continue  # db.create_all() below will create it fresh with all columns
-            existing_cols = {c["name"] for c in inspector.get_columns(table)}
-            for col_name, ddl_type in columns:
-                if col_name in existing_cols:
+        for mapper in db.Model.registry.mappers:
+            model = mapper.class_
+            table = model.__table__
+            if table.name not in existing_tables:
+                continue  # db.create_all() below creates it fresh with every column
+
+            existing_cols = {c["name"] for c in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing_cols:
                     continue
-                print(f"  + adding column {table}.{col_name}")
+                ddl_type = _ddl_type_for(column, dialect)
+                print(f"  + adding column {table.name}.{column.name} ({ddl_type})")
                 with db.engine.begin() as conn:
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {ddl_type}"))
+                    conn.execute(text(
+                        f'ALTER TABLE {table.name} ADD COLUMN {column.name} {ddl_type}'
+                    ))
 
 
 def main():
