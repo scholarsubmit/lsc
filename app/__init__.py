@@ -101,4 +101,21 @@ def create_app(config_name=None):
         from flask import render_template
         return render_template("500.html"), 500
 
+    # ── Self-healing schema check ──
+    # Normally the Render build step (migrate_db.py) keeps the database schema
+    # in sync with the models. This is a safety net in case that step is ever
+    # skipped, cached, or fails partway: every time the app process actually
+    # starts serving requests, it re-checks its own schema and adds anything
+    # missing. It only ever adds columns — never drops or alters data — so
+    # it's safe to run unconditionally on every boot.
+    with app.app_context():
+        try:
+            from app.schema_guard import ensure_columns_for
+            added = ensure_columns_for(app, db)
+            if added:
+                app.logger.warning(f"Schema self-heal added missing columns: {added}")
+            db.create_all()  # creates any tables that don't exist at all yet (Ad, CurrencyRate, etc.)
+        except Exception as e:
+            app.logger.error(f"Schema self-heal check failed (app will still start): {e}")
+
     return app

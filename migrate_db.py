@@ -1,76 +1,27 @@
 # migrate_db.py
-# Idempotent schema upgrade: compares every SQLAlchemy model against the
-# actual database schema and adds any columns that exist in the code but
-# not yet in the database. This covers old schema drift as well as new
-# fields, without needing a full Alembic migration. Safe to run on every
-# deploy (build step) and every local start — it only ever adds columns,
-# it never drops or alters existing data.
+# Standalone entry point for the Render build step (see render.yaml).
+# The actual schema-diff logic lives in app/schema_guard.py, shared with
+# the automatic startup check in app/__init__.py — so this isn't the only
+# safety net if a build step ever gets skipped or fails partway.
 #
 # Usage: python3 migrate_db.py
 
-from sqlalchemy import inspect, text
-
 from app import create_app
 from app.extensions import db
-
-
-def _ddl_type_for(column, dialect):
-    """Best-effort SQL type string for an ALTER TABLE ADD COLUMN, plus a safe
-    default clause when the model declares a simple (non-callable) default."""
-    try:
-        col_type = column.type.compile(dialect=dialect)
-    except Exception:
-        col_type = "TEXT"
-
-    default_clause = ""
-    default = column.default
-    if default is not None and getattr(default, "is_scalar", False):
-        value = default.arg
-        if isinstance(value, bool):
-            default_clause = f" DEFAULT {'TRUE' if value else 'FALSE'}"
-        elif isinstance(value, (int, float)):
-            default_clause = f" DEFAULT {value}"
-        elif isinstance(value, str):
-            escaped = value.replace("'", "''")
-            default_clause = f" DEFAULT '{escaped}'"
-        # callables (e.g. datetime.utcnow, generate_reference) can't be
-        # expressed as a SQL literal default — new rows still get them from
-        # the ORM; existing rows are simply left NULL, which is fine since
-        # every nullable-by-necessity field here tolerates that.
-
-    return f"{col_type}{default_clause}"
-
-
-def ensure_columns(app):
-    with app.app_context():
-        inspector = inspect(db.engine)
-        dialect = db.engine.dialect
-        existing_tables = set(inspector.get_table_names())
-
-        for mapper in db.Model.registry.mappers:
-            model = mapper.class_
-            table = model.__table__
-            if table.name not in existing_tables:
-                continue  # db.create_all() below creates it fresh with every column
-
-            existing_cols = {c["name"] for c in inspector.get_columns(table.name)}
-            for column in table.columns:
-                if column.name in existing_cols:
-                    continue
-                ddl_type = _ddl_type_for(column, dialect)
-                print(f"  + adding column {table.name}.{column.name} ({ddl_type})")
-                with db.engine.begin() as conn:
-                    conn.execute(text(
-                        f'ALTER TABLE {table.name} ADD COLUMN {column.name} {ddl_type}'
-                    ))
+from app.schema_guard import ensure_columns_for
 
 
 def main():
     app = create_app()
-    print("Ensuring columns on existing tables...")
-    ensure_columns(app)
-    print("Ensuring new tables (Ad, PushSubscription, CurrencyRate, etc.)...")
     with app.app_context():
+        print("Ensuring columns on existing tables...")
+        added = ensure_columns_for(app, db)
+        for col in added:
+            print(f"  + adding column {col}")
+        if not added:
+            print("  (schema already up to date)")
+
+        print("Ensuring new tables (Ad, PushSubscription, CurrencyRate, etc.)...")
         db.create_all()
         seed_default_currencies()
     print("Done.")
