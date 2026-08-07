@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
 <link rel="icon" href="{{ url_for('static', filename='icons/lsc-logo-min.png') }}" type="image/png">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -262,7 +263,7 @@
         border: none;
         cursor: pointer;
         transition: background 0.2s ease;
-        color: var(--text-color, #0f172a);
+        color: var(--text);
         font-size: 0.85rem;
     }
     .user-btn:hover {
@@ -302,8 +303,8 @@
         top: calc(100% + 8px);
         right: 0;
         min-width: 220px;
-        background: var(--bg-card, white);
-        border: 1px solid var(--border-color, #e2e8f0);
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 12px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         padding: 8px;
@@ -340,7 +341,7 @@
     .dropdown-name {
         font-weight: 600;
         font-size: 0.85rem;
-        color: var(--text-color, #0f172a);
+        color: var(--text);
     }
     .dropdown-email {
         font-size: 0.7rem;
@@ -348,7 +349,7 @@
     }
     .dropdown-divider {
         height: 1px;
-        background: var(--border-color, #e2e8f0);
+        background: var(--border);
         margin: 4px 0;
     }
     .dropdown-item {
@@ -357,7 +358,7 @@
         gap: 10px;
         padding: 8px 12px;
         border-radius: 8px;
-        color: var(--text-color, #0f172a);
+        color: var(--text);
         text-decoration: none;
         font-size: 0.82rem;
         transition: all 0.2s ease;
@@ -413,8 +414,8 @@
         display: none;
         flex-direction: column;
         padding: 12px 20px 20px;
-        background: var(--bg-card, white);
-        border-top: 1px solid var(--border-color, #e2e8f0);
+        background: var(--surface);
+        border-top: 1px solid var(--border);
     }
     .mobile-nav.open {
         display: flex;
@@ -422,7 +423,7 @@
     .mobile-nav a {
         padding: 10px 12px;
         border-radius: 8px;
-        color: var(--text-color, #0f172a);
+        color: var(--text);
         text-decoration: none;
         font-weight: 500;
         font-size: 0.9rem;
@@ -436,7 +437,7 @@
     }
     .mobile-nav a.logout-link {
         color: #ef4444;
-        border-top: 1px solid var(--border-color, #e2e8f0);
+        border-top: 1px solid var(--border);
         margin-top: 4px;
         padding-top: 14px;
     }
@@ -613,6 +614,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ── Theme Toggle (light/dark) ──
+    // Applies to the whole site via [data-theme] on <html>, persisted in
+    // localStorage so it survives reloads and is respected by the inline
+    // pre-paint script in <head>. Wires both the public header button and
+    // the admin sidebar's toggle, since they share the same mechanism.
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('pc-theme', theme);
+        document.querySelectorAll('#theme-toggle, #admin-theme-toggle, #dash-theme-toggle').forEach(function (btn) {
+            btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+        });
+    }
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        setTheme(current === 'dark' ? 'light' : 'dark');
+    }
+    document.querySelectorAll('#theme-toggle, #admin-theme-toggle, #dash-theme-toggle').forEach(function (btn) {
+        btn.addEventListener('click', toggleTheme);
+    });
 
     // ── Mobile Nav Toggle ──
     const navToggle = document.getElementById('nav-toggle');

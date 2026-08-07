@@ -6,17 +6,17 @@
 {% block admin_content %}
 <style>
   .admin-two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start; }
-  .ad-card { background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .ad-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
   .ad-card h4 { margin: 0 0 4px; font-size: 0.95rem; }
   .ad-card p { margin: 0; color: var(--text-muted, #64748b); font-size: 0.85rem; }
   .ad-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; background: linear-gradient(135deg,#f59e0b,#ec4899); color: white; padding: 2px 10px; border-radius: 20px; margin-bottom: 6px; }
   .status-live { color: #10b981; font-weight: 600; font-size: 0.75rem; }
   .status-off { color: #94a3b8; font-weight: 600; font-size: 0.75rem; }
   .ad-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-  .admin-panel { background: var(--bg-card, white); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 24px; }
+  .admin-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
   .form-group { margin-bottom: 16px; }
   .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-  .form-control { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0); background: var(--bg-input, white); color: var(--text-color, #0f172a); box-sizing: border-box; }
+  .form-control { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input, white); color: var(--text); box-sizing: border-box; }
   .btn-submit { width: 100%; padding: 12px; font-weight: 600; color: white; background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; border-radius: 8px; cursor: pointer; }
   [data-theme="dark"] .ad-card, [data-theme="dark"] .admin-panel { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.06); }
   [data-theme="dark"] .form-control { background: rgba(15,23,42,0.5); border-color: #334155; color: #f1f5f9; }

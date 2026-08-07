@@ -76,7 +76,7 @@
       </a>
       
       <!-- Quick Action Buttons -->
-      <div class="card-actions" style="padding: 8px 16px 16px; display: flex; gap: 8px; border-top: 1px solid var(--border-color);">
+      <div class="card-actions" style="padding: 8px 16px 16px; display: flex; gap: 8px; border-top: 1px solid var(--border);">
         <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="btn btn-sm btn-outline-primary" style="flex:1; text-align:center; font-size:0.8rem;">
           <i class="fas fa-info-circle" aria-hidden="true"></i> Details
         </a>
@@ -126,7 +126,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  background: var(--bg-card, #fff);
+  background: var(--surface);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -174,7 +174,7 @@
 .service-card .thumb {
   position: relative;
   overflow: hidden;
-  background: var(--bg-muted, #f3f4f6);
+  background: var(--bg-elevated);
 }
 
 .service-card .thumb img {

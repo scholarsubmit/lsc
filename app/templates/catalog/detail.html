@@ -15,8 +15,8 @@
 
   <!-- Main Service Details -->
   <div class="hero-grid" style="align-items: flex-start; gap: 40px">
-    <div class="hero-visual reg-marks" style="padding: 0; overflow: hidden; border-radius: var(--radius)">
-      <div class="thumb" style="aspect-ratio: 4/3; position: relative; background: var(--bg-muted)">
+    <div class="hero-visual reg-marks" style="padding: 0; overflow: hidden; border-radius: var(--radius-md)">
+      <div class="thumb" style="aspect-ratio: 4/3; position: relative; background: var(--bg-elevated)">
         {% if service.image and 'placeholder' not in service.image %}
         <img src="{{ url_for('static', filename=service.image) }}" alt="{{ service.name }}" style="width: 100%; height: 100%; object-fit: cover">
         {% else %}
@@ -87,12 +87,12 @@
       <!-- Price Display -->
       <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
         {% if service.is_dimensional %}
-        <p class="price" id="dimensional-price-display" style="font-size: 1.8rem; font-weight: 700; color: var(--primary); margin: 0;">
+        <p class="price" id="dimensional-price-display" style="font-size: 1.8rem; font-weight: 700; color: var(--accent); margin: 0;">
           {{ service.price_per_sqft | money }}
           <small class="muted" style="font-family: var(--font-body); font-weight: 400; font-size: 1rem;">/ sq ft — select a size below</small>
         </p>
         {% else %}
-        <p class="price" style="font-size: 1.8rem; font-weight: 700; color: var(--primary); margin: 0;">
+        <p class="price" style="font-size: 1.8rem; font-weight: 700; color: var(--accent); margin: 0;">
           {{ service.price | money }}
           <small class="muted" style="font-family: var(--font-body); font-weight: 400; font-size: 1rem;">/ {{ service.unit }}</small>
         </p>
@@ -127,16 +127,16 @@
 
       <!-- Print Job Configurator -->
       {% if service.is_dimensional or service.requires_upload %}
-      <div class="print-configurator" style="margin: 20px 0; padding: 20px; background: var(--bg-elevated); border-radius: var(--radius); border: 1px solid var(--border);">
+      <div class="print-configurator" style="margin: 20px 0; padding: 20px; background: var(--bg-elevated); border-radius: var(--radius-md); border: 1px solid var(--border);">
         <h3 style="margin: 0 0 16px; font-size: 1.05rem;">
-          <i class="fas fa-ruler-combined" aria-hidden="true" style="margin-right: 6px; color: var(--primary);"></i>
+          <i class="fas fa-ruler-combined" aria-hidden="true" style="margin-right: 6px; color: var(--accent);"></i>
           Configure your print job
         </h3>
 
         {% if service.is_dimensional %}
         <div style="margin-bottom: 16px;">
           <label for="size_choice" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Size</label>
-          <select id="size_choice" name="size_choice" form="print-job-form" style="width: 100%; max-width: 360px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-color);">
+          <select id="size_choice" name="size_choice" form="print-job-form" style="width: 100%; max-width: 360px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text);">
             <option value="">Choose a size…</option>
             {% for preset in service.preset_sizes_list %}
             <option value="{{ preset.label }}" data-width="{{ preset.width_ft }}" data-height="{{ preset.height_ft }}">{{ preset.label }}</option>
@@ -147,15 +147,15 @@
           <div id="custom-size-fields" style="display: none; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
             <div>
               <label for="custom_width" style="display: block; font-size: 0.8rem; margin-bottom: 4px;">Width (ft)</label>
-              <input type="number" id="custom_width" name="custom_width" form="print-job-form" min="0.1" step="0.1" placeholder="e.g. 3" style="width: 110px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-color);">
+              <input type="number" id="custom_width" name="custom_width" form="print-job-form" min="0.1" step="0.1" placeholder="e.g. 3" style="width: 110px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text);">
             </div>
             <div>
               <label for="custom_height" style="display: block; font-size: 0.8rem; margin-bottom: 4px;">Height (ft)</label>
-              <input type="number" id="custom_height" name="custom_height" form="print-job-form" min="0.1" step="0.1" placeholder="e.g. 5" style="width: 110px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-color);">
+              <input type="number" id="custom_height" name="custom_height" form="print-job-form" min="0.1" step="0.1" placeholder="e.g. 5" style="width: 110px; padding: 9px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text);">
             </div>
           </div>
 
-          <p id="computed-price-line" style="display: none; margin: 14px 0 0; font-weight: 700; font-size: 1.15rem; color: var(--primary);">
+          <p id="computed-price-line" style="display: none; margin: 14px 0 0; font-weight: 700; font-size: 1.15rem; color: var(--accent);">
             Estimated price: <span id="computed-price-value">—</span>
           </p>
         </div>
@@ -164,7 +164,7 @@
         {% if service.requires_upload %}
         <div>
           <label for="design_file" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Upload your design file</label>
-          <input type="file" id="design_file" name="design_file" form="print-job-form" style="width: 100%; max-width: 420px; padding: 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border); background: var(--bg-card);">
+          <input type="file" id="design_file" name="design_file" form="print-job-form" style="width: 100%; max-width: 420px; padding: 8px; border-radius: var(--radius-sm); border: 1px dashed var(--border); background: var(--surface);">
           <p class="muted" style="font-size: 0.8rem; margin: 6px 0 0;">
             Accepted: ZIP, CDR (CorelDRAW), AI, EPS, PDF, PSD, SVG, or high-res image — max {{ service.max_upload_mb }}MB.
           </p>
@@ -243,7 +243,7 @@
   <!-- ============================================ -->
 
   {% if recommendations or similar_price %}
-  <div class="recommendations-section" style="margin-top: 64px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+  <div class="recommendations-section" style="margin-top: 64px; padding-top: 40px; border-top: 2px solid var(--border);">
     <div class="section-head" style="margin-bottom: 24px">
       <h2 style="font-size: 1.5rem; display: flex; align-items: center; gap: 10px">
         <span>🎯 You Might Also Like</span>
@@ -262,7 +262,7 @@
       <div class="grid grid-4" style="gap: 16px">
         {% for rec in recommendations[:4] %}
         <a href="{{ url_for('catalog.detail', slug=rec.slug) }}" class="card service-card recommendation-card" style="text-decoration: none; color: inherit; overflow: hidden; transition: all 0.2s ease;">
-          <div class="thumb" style="position: relative; overflow: hidden; background: var(--bg-muted);">
+          <div class="thumb" style="position: relative; overflow: hidden; background: var(--bg-elevated);">
             {% if rec.image and 'placeholder' not in rec.image %}
             <img src="{{ url_for('static', filename=rec.image) }}" alt="{{ rec.name }}" loading="lazy" style="width: 100%; height: 140px; object-fit: cover; transition: transform 0.3s ease;">
             {% else %}
@@ -287,7 +287,7 @@
               {{ rec.short_description or '' }}
             </p>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span class="price" style="font-size: 0.9rem; font-weight: 600; color: var(--primary);">
+              <span class="price" style="font-size: 0.9rem; font-weight: 600; color: var(--accent);">
                 {{ rec.price | money }}
                 <small class="muted" style="font-weight: 400; font-size: 0.7rem">/ {{ rec.unit }}</small>
               </span>
@@ -311,8 +311,8 @@
       </h4>
       <div class="grid grid-4" style="gap: 16px">
         {% for s in similar_price[:3] %}
-        <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card recommendation-card" style="text-decoration: none; color: inherit; overflow: hidden; transition: all 0.2s ease; border-color: var(--border-color);">
-          <div class="thumb" style="position: relative; overflow: hidden; background: var(--bg-muted);">
+        <a href="{{ url_for('catalog.detail', slug=s.slug) }}" class="card service-card recommendation-card" style="text-decoration: none; color: inherit; overflow: hidden; transition: all 0.2s ease; border-color: var(--border);">
+          <div class="thumb" style="position: relative; overflow: hidden; background: var(--bg-elevated);">
             {% if s.image and 'placeholder' not in s.image %}
             <img src="{{ url_for('static', filename=s.image) }}" alt="{{ s.name }}" loading="lazy" style="width: 100%; height: 120px; object-fit: cover; transition: transform 0.3s ease;">
             {% else %}
@@ -331,7 +331,7 @@
               {{ s.name }}
             </h3>
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span class="price" style="font-size: 0.85rem; font-weight: 600; color: var(--primary);">
+              <span class="price" style="font-size: 0.85rem; font-weight: 600; color: var(--accent);">
                 {{ s.price | money }}
               </span>
               <span style="font-size: 0.7rem; color: var(--text-muted)">
@@ -355,7 +355,7 @@
   {% endif %}
 
   <!-- REVIEWS SECTION -->
-  <div class="section-head" style="margin-top: 56px; padding-top: 40px; border-top: 2px solid var(--border-color);">
+  <div class="section-head" style="margin-top: 56px; padding-top: 40px; border-top: 2px solid var(--border);">
     <h2 style="font-size: 1.3rem">Customer Reviews</h2>
     <p class="muted">{{ reviews|length }} review{{ 's' if reviews|length != 1 }}</p>
   </div>
@@ -383,7 +383,7 @@
     </div>
     {% endfor %}
   {% else %}
-  <div class="empty-state" style="text-align: center; padding: 40px 20px; background: var(--bg-elevated); border-radius: var(--radius);">
+  <div class="empty-state" style="text-align: center; padding: 40px 20px; background: var(--bg-elevated); border-radius: var(--radius-md);">
     <p class="muted" style="margin: 0;">No reviews yet — be the first to share your experience.</p>
   </div>
   {% endif %}
@@ -437,7 +437,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    background: var(--bg-card, #fff);
+    background: var(--surface);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   }
 
@@ -549,7 +549,7 @@
   /* Empty state */
   .empty-state {
     background: var(--bg-elevated);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
   }
 
   /* Delivery info */
@@ -561,7 +561,7 @@
   .form-select,
   .form-control {
     background: var(--bg-input);
-    color: var(--text-color);
+    color: var(--text);
   }
 
   /* Quantity stepper */

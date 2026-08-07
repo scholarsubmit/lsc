@@ -47,6 +47,7 @@
   --accent: var(--purple-700);
   --accent-hover: var(--purple-900);
   --on-accent: var(--white);
+  --bg-input: var(--white);
 }
 
 [data-theme="dark"] {
@@ -59,6 +60,7 @@
   --accent: var(--purple-500);
   --accent-hover: #A78BFA;
   --on-accent: #14101F;
+  --bg-input: #1A1426;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
   --shadow-lg: 0 20px 48px rgba(0,0,0,0.5);
@@ -150,9 +152,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .header-actions { display: flex; align-items: center; gap: 8px; }
 .currency-switcher select {
-  border: 1px solid var(--border-color, #e2e8f0);
-  background: var(--bg-card, white);
-  color: var(--text-color, #0f172a);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 8px;
   padding: 6px 8px;
   font-size: 0.78rem;
@@ -657,7 +659,7 @@ th { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; text-transfo
 .faq-q {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 20px 4px; background: none; border: none; text-align: left; cursor: pointer;
-  font-family: var(--font-heading); font-weight: 600; font-size: 1rem; color: var(--text);
+  font-family: var(--font-display); font-weight: 600; font-size: 1rem; color: var(--text);
 }
 .faq-q .chevron { flex-shrink: 0; color: var(--accent); transition: transform var(--transition); }
 .faq-item.is-open .faq-q .chevron { transform: rotate(180deg); }

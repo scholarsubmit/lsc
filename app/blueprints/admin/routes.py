@@ -95,8 +95,14 @@ def inject_unread_notifications():
 @admin_bp.route("/services")
 @admin_required
 def services():
-    all_services = Service.query.order_by(Service.created_at.desc()).all()
-    return render_template("admin/services.html", services=all_services)
+    search = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
+    query = Service.query
+    if search:
+        like = f"%{search}%"
+        query = query.filter(Service.name.ilike(like))
+    pagination = query.order_by(Service.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
+    return render_template("admin/services.html", services=pagination.items, pagination=pagination, search=search)
 
 
 #Updated the new_service and edit_service functions
@@ -348,13 +354,20 @@ def delete_category(category_id):
 def orders():
     status_filter = request.args.get("status")
     highlight = request.args.get("highlight", type=int)
+    search = request.args.get("q", "").strip()
+    page = request.args.get("page", 1, type=int)
     query = Order.query
     if status_filter:
         query = query.filter_by(status=status_filter)
-    all_orders = query.order_by(Order.created_at.desc()).all()
+    if search:
+        like = f"%{search}%"
+        query = query.join(User, Order.user_id == User.id).filter(
+            db.or_(Order.reference.ilike(like), User.full_name.ilike(like), User.email.ilike(like))
+        )
+    pagination = query.order_by(Order.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
     return render_template(
-        "admin/orders.html", orders=all_orders, status_filter=status_filter,
-        order_statuses=ORDER_STATUSES, highlight=highlight,
+        "admin/orders.html", orders=pagination.items, pagination=pagination, status_filter=status_filter,
+        order_statuses=ORDER_STATUSES, highlight=highlight, search=search,
     )
 
 
@@ -411,11 +424,12 @@ def download_design_file(order_id, item_id):
 @admin_required
 def bookings():
     status_filter = request.args.get("status")
+    page = request.args.get("page", 1, type=int)
     query = Booking.query
     if status_filter:
         query = query.filter_by(status=status_filter)
-    all_bookings = query.order_by(Booking.created_at.desc()).all()
-    return render_template("admin/bookings.html", bookings=all_bookings, status_filter=status_filter)
+    pagination = query.order_by(Booking.created_at.desc()).paginate(page=page, per_page=20, error_out=False)
+    return render_template("admin/bookings.html", bookings=pagination.items, pagination=pagination, status_filter=status_filter)
 
 
 @admin_bp.route("/bookings/<int:booking_id>/status", methods=["POST"])

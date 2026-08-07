@@ -12,6 +12,11 @@
   </a>
 </div>
 
+<form method="get" class="search-bar" style="max-width:360px;">
+  <input type="search" name="q" value="{{ search or '' }}" placeholder="Search services by name…" aria-label="Search services">
+  <button type="submit" class="btn btn-outline btn-sm">Search</button>
+</form>
+
 <div class="admin-table-wrap card">
   <table>
     <thead>
@@ -49,9 +54,10 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" class="muted" style="text-align:center;padding:32px;">No services yet — add your first one.</td></tr>
+      <tr><td colspan="6" class="muted" style="text-align:center;padding:32px;">{{ 'No services match your search.' if search else 'No services yet — add your first one.' }}</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% include "admin/_pagination.html" %}
 {% endblock %}

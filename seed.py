@@ -4,7 +4,8 @@ import os
 from app import create_app
 from app.extensions import db
 from app.models import ServiceCategory, Service, User
-from migrate_db import ensure_columns, seed_default_currencies
+from migrate_db import seed_default_currencies
+from app.schema_guard import ensure_columns_for
 
 # Ensure we're using the right environment
 app = create_app(os.environ.get("FLASK_ENV", "development"))
@@ -76,8 +77,8 @@ def slugify(text):
 
 def seed():
     print("Ensuring schema is up to date...")
-    ensure_columns(app)
     with app.app_context():
+        ensure_columns_for(app, db)
         print("Creating tables...")
         db.create_all()
         seed_default_currencies()
