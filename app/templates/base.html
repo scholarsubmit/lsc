@@ -175,6 +175,29 @@
   {% block content %}{% endblock %}
 </main>
 
+<!-- ── Peripheral contact bubble ──
+     Sits at the edge of the viewport on every page (not the center of
+     attention, but always in peripheral view) so a quick glance tells
+     people "you can talk to a human right now" without competing with
+     whatever they came to the page to read. A recognizable WhatsApp-style
+     corner bubble was chosen deliberately: people already have a learned
+     pattern for it, so it registers instantly rather than needing to be
+     read. The pulse ring is a slow ~2s breathing animation, well under
+     the WCAG flash-rate threshold that can trigger seizures, and is
+     switched off entirely for prefers-reduced-motion. -->
+{% if company_whatsapp and request.blueprint not in ['admin', 'dashboard'] %}
+<a href="https://wa.me/{{ company_whatsapp }}?text={{ 'Hi! I have a question about your services.' | urlencode }}"
+   class="peripheral-cta" id="peripheral-whatsapp" target="_blank" rel="noopener"
+   aria-label="Chat with {{ company_name }} on WhatsApp">
+  <span class="peripheral-cta-pulse" aria-hidden="true"></span>
+  <span class="peripheral-cta-icon" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12.01 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.08L2 22l5.09-1.33A9.94 9.94 0 0 0 12.01 22C17.53 22 22 17.52 22 12S17.53 2 12.01 2zm5.6 14.24c-.24.68-1.4 1.3-1.93 1.36-.5.06-1.02.3-3.4-.72-2.9-1.24-4.77-4.2-4.92-4.4-.14-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.4.26-.3.58-.36.77-.36h.55c.18 0 .4-.02.63.48.24.5.8 1.9.87 2.04.08.14.13.3.02.5-.1.2-.16.32-.32.5-.16.18-.33.4-.48.54-.16.14-.32.3-.14.6.18.32.8 1.32 1.72 2.13 1.18 1.05 2.18 1.38 2.5 1.53.32.16.5.14.7-.08.18-.22.78-.9 1-1.22.2-.3.4-.26.68-.15.28.1 1.76.83 2.06.98.3.15.5.22.58.35.08.13.08.75-.16 1.43z"/></svg>
+  </span>
+  <span class="peripheral-cta-label">Chat with us</span>
+</a>
+{% endif %}
+
+
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">

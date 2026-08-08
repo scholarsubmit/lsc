@@ -260,7 +260,77 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 [data-theme="dark"] .hero { background: radial-gradient(circle at 85% 0%, rgba(139,92,246,0.12), transparent 60%); }
 
-/* ── Homepage promo/ad banner, admin-controlled, top-left of hero ── */
+/* ── Peripheral WhatsApp contact bubble ── */
+@keyframes peripheral-pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  70%  { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes peripheral-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.peripheral-cta {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 999px;
+  background: #25D366;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4);
+  animation: peripheral-in 0.5s ease 1.2s both;
+}
+.peripheral-cta-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #25D366;
+  animation: peripheral-pulse-ring 2.2s cubic-bezier(0.3, 0, 0.4, 1) infinite;
+}
+.peripheral-cta-icon {
+  position: relative;
+  display: flex;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.peripheral-cta-label {
+  position: relative;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 260ms ease, opacity 200ms ease;
+}
+.peripheral-cta:hover .peripheral-cta-label,
+.peripheral-cta:focus-visible .peripheral-cta-label {
+  max-width: 140px;
+  opacity: 1;
+}
+.peripheral-cta:hover,
+.peripheral-cta:focus-visible {
+  box-shadow: 0 12px 34px rgba(37, 211, 102, 0.55);
+}
+@media (max-width: 640px) {
+  .peripheral-cta { right: 14px; bottom: 14px; padding: 13px; }
+}
+/* Anyone who has asked their OS/browser for reduced motion gets a static,
+   still-visible bubble instead — the pulse is a nice-to-have, not a
+   requirement for the feature to communicate its purpose. */
+@media (prefers-reduced-motion: reduce) {
+  .peripheral-cta { animation: none; opacity: 1; }
+  .peripheral-cta-pulse { animation: none; display: none; }
+}
+
+
 @keyframes ad-banner-in {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -299,6 +369,23 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   background: rgba(255,255,255,0.25);
   padding: 1px 8px;
   border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+@keyframes ad-banner-dot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.ad-banner-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: ad-banner-dot-blink 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad-banner-live-dot { animation: none; }
 }
 .ad-banner-title { font-weight: 800; font-size: 0.9rem; line-height: 1.2; }
 .ad-banner-message { font-size: 0.78rem; opacity: 0.95; line-height: 1.3; }

@@ -7,7 +7,7 @@
   <div class="ad-banner-wrap" id="ad-banner-wrap">
     {% for ad in active_ads %}
     <a href="{{ ad.link_url or '#' }}" class="ad-banner {{ 'is-active' if loop.first }}" data-ad-index="{{ loop.index0 }}">
-      <span class="ad-banner-badge">{{ ad.badge_text }}</span>
+      <span class="ad-banner-badge"><span class="ad-banner-live-dot" aria-hidden="true"></span>{{ ad.badge_text }}</span>
       <span class="ad-banner-title">{{ ad.title }}</span>
       <span class="ad-banner-message">{{ ad.message }}</span>
     </a>

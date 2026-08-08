@@ -118,4 +118,17 @@ def create_app(config_name=None):
         except Exception as e:
             app.logger.error(f"Schema self-heal check failed (app will still start): {e}")
 
+        # ── Self-healing seed check ──
+        # Same reasoning as above, applied to the default catalog/admin
+        # account: normally seed.py (the Render build step) populates this.
+        # If that step is ever skipped, cached, or fails partway (as
+        # happened previously due to a stale import), the site would
+        # otherwise stay live with an empty catalog until someone notices
+        # and reruns it by hand. This check is fully idempotent — it only
+        # adds rows that don't already exist — so it's safe on every boot,
+        # including in production, and never touches data an admin has
+        # since edited or removed.
+        from app.seed_data import run_seed_safely
+        run_seed_safely(app, db)
+
     return app
